@@ -22,9 +22,11 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="true" />
+        <module name="storm-kafka-hdfs-starter" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="storm-kafka-hdfs-starter" target="1.6" />
       <module name="storm-kafka-mypipe" target="1.6" />
     </bytecodeTargetLevel>
   </component>
