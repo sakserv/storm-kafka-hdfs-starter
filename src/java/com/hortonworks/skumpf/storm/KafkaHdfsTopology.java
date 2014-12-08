@@ -39,7 +39,7 @@ import storm.kafka.ZkHosts;
 import java.util.UUID;
 
 
-public class MyPipeTopology {
+public class KafkaHdfsTopology {
 
 
     public static void configureKafkaSpout(TopologyBuilder builder, String zkHostString, String kafkaTopic, String kafkaStartOffset) {

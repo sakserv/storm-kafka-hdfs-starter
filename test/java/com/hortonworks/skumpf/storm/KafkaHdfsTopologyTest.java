@@ -9,7 +9,10 @@ import com.hortonworks.skumpf.storm.tools.ZookeeperLocalCluster;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
-import org.apache.hadoop.fs.*;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocatedFileStatus;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RemoteIterator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,7 +25,7 @@ import java.util.Properties;
 /**
  * Created by skumpf on 12/6/14.
  */
-public class MyPipeTopologyTest {
+public class KafkaHdfsTopologyTest {
 
     // Kafka static
     private static final String DEFAULT_LOG_DIR = "/tmp/embedded/kafka/";
@@ -91,7 +94,7 @@ public class MyPipeTopologyTest {
     }
 
     @Test
-    public void testMyPipeTopology() {
+    public void testKafkaHdfsTopology() {
 
         // Add Producer properties and created the Producer
         Properties props = new Properties();
@@ -120,8 +123,8 @@ public class MyPipeTopologyTest {
 
         System.out.println("STORM: Starting Topology: " + TEST_TOPOLOGY_NAME);
         TopologyBuilder builder = new TopologyBuilder();
-        MyPipeTopology.configureKafkaSpout(builder, zkCluster.getZkConnectionString(), TEST_TOPIC, "-2");
-        MyPipeTopology.configureHdfsBolt(builder, ",", "/tmp/kafka_data", hdfsCluster.getHdfsUriString());
+        KafkaHdfsTopology.configureKafkaSpout(builder, zkCluster.getZkConnectionString(), TEST_TOPIC, "-2");
+        KafkaHdfsTopology.configureHdfsBolt(builder, ",", "/tmp/kafka_data", hdfsCluster.getHdfsUriString());
         //MyPipeTopology.configurePrinterBolt(builder);
         stormCluster.submitTopology(TEST_TOPOLOGY_NAME, conf, builder.createTopology());
 
