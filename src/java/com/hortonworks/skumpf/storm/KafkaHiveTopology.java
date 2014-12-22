@@ -69,26 +69,6 @@ public class KafkaHiveTopology {
 
     }
 
-    public static void configurePrinterBolt(TopologyBuilder builder) {
-        builder.setBolt("print", new PrinterBolt(), 1).shuffleGrouping("kafkaspout");
-    }
-
-    public static void configureHdfsBolt(TopologyBuilder builder, String delimiter, String outputPath, String hdfsUri) {
-        RecordFormat format = new DelimitedRecordFormat().withFieldDelimiter(delimiter);
-        SyncPolicy syncPolicy = new CountSyncPolicy(1000);
-        //FileRotationPolicy rotationPolicy = new TimedRotationPolicy(300, TimedRotationPolicy.TimeUnit.SECONDS);
-        FileRotationPolicy rotationPolicy = new FileSizeRotationPolicy(1, FileSizeRotationPolicy.Units.KB);
-        FileNameFormat fileNameFormat = new DefaultFileNameFormat().withPath(outputPath);
-        HdfsBolt bolt = new HdfsBolt()
-                .withFsUrl(hdfsUri)
-                .withFileNameFormat(fileNameFormat)
-                .withRecordFormat(format)
-                .withRotationPolicy(rotationPolicy)
-                .withSyncPolicy(syncPolicy);
-        builder.setBolt("hdfsbolt", bolt, 1).shuffleGrouping("kafkaspout");
-
-    }
-
     public static void configureHiveStreamingBolt(TopologyBuilder builder, String[] colNames, String[] partitionCol, String metastoreUri, String dbName, String tableName) {
 
         JsonRecordHiveMapper mapper = new JsonRecordHiveMapper()
@@ -96,11 +76,11 @@ public class KafkaHiveTopology {
                 .withPartitionFields(new Fields(partitionCol));
         HiveOptions hiveOptions = new HiveOptions(metastoreUri, dbName, tableName, mapper)
                 .withAutoCreatePartitions(true)
-                .withTxnsPerBatch(2)
-                .withMaxOpenConnections(500)
-                .withBatchSize(1)
+                .withTxnsPerBatch(100)
+                .withMaxOpenConnections(100)
+                .withBatchSize(1000)
                 .withIdleTimeout(3600)
-                .withHeartBeatInterval(60);
+                .withHeartBeatInterval(240);
         HiveBolt bolt = new HiveBolt(hiveOptions);
         builder.setBolt("hivebolt", bolt, 1).shuffleGrouping("kafkaspout");
 
@@ -111,8 +91,8 @@ public class KafkaHiveTopology {
         if (args.length < 7) {
             System.out.println("USAGE: storm jar </path/to/topo.jar> <com.package.TopologyMainClass> " +
                     "<topo_display_name> <zookeeper_host:port[,zookeeper_host:port]> " +
-                    "<kafka_topic_name> <offset_time_to_start_from> <{hivecol1,[hivecol2]}> " +
-                    "<{hivepartition1,[hivepartiton2]}> <metastoreUri> <hivedb> <hivetable>");
+                    "<kafka_topic_name> <offset_time_to_start_from> <hivecol1,[hivecol2]> " +
+                    "<hivepartition1,[hivepartiton2]> <metastoreUri> <hivedb> <hivetable>");
             System.exit(3);
         }
 
@@ -120,12 +100,6 @@ public class KafkaHiveTopology {
 
         // Setup the Kafka Spout
         configureKafkaSpout(builder, args[1], args[2], args[3]);
-
-        // Setup the Printer Bolt
-        //configurePrinterBolt(builder);
-
-        // Setup the HDFS Bolt
-        //configureHdfsBolt(builder, args[4], args[5], args[6]);
 
         // Setup the Hive Bolt
         String[] cols = args[4].split(",");
