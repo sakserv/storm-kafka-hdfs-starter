@@ -19,13 +19,9 @@ package com.hortonworks.skumpf.storm;
 
 import backtype.storm.Config;
 import backtype.storm.StormSubmitter;
-import backtype.storm.spout.MultiScheme;
-import backtype.storm.spout.RawMultiScheme;
-import backtype.storm.spout.RawScheme;
 import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.tuple.Fields;
-import backtype.storm.tuple.Values;
 import com.hortonworks.skumpf.storm.bolt.PrinterBolt;
 import org.apache.storm.hdfs.bolt.HdfsBolt;
 import org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat;
@@ -37,19 +33,16 @@ import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy;
 import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
 import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 import org.apache.storm.hive.bolt.HiveBolt;
-import org.apache.storm.hive.bolt.mapper.DelimitedRecordHiveMapper;
 import org.apache.storm.hive.bolt.mapper.JsonRecordHiveMapper;
 import org.apache.storm.hive.common.HiveOptions;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
-import storm.kafka.*;
+import storm.kafka.KafkaSpout;
+import storm.kafka.SpoutConfig;
+import storm.kafka.ZkHosts;
 
-import java.io.UnsupportedEncodingException;
-import java.util.List;
 import java.util.UUID;
 
 
-public class KafkaHdfsTopology {
+public class KafkaHiveTopology {
 
 
     public static void configureKafkaSpout(TopologyBuilder builder, String zkHostString, String kafkaTopic, String kafkaStartOffset) {
@@ -103,9 +96,9 @@ public class KafkaHdfsTopology {
                 .withPartitionFields(new Fields(partitionCol));
         HiveOptions hiveOptions = new HiveOptions(metastoreUri, dbName, tableName, mapper)
                 .withAutoCreatePartitions(true)
-                .withTxnsPerBatch(100)
+                .withTxnsPerBatch(2)
                 .withMaxOpenConnections(500)
-                .withBatchSize(1000)
+                .withBatchSize(1)
                 .withIdleTimeout(3600)
                 .withHeartBeatInterval(60);
         HiveBolt bolt = new HiveBolt(hiveOptions);
@@ -118,8 +111,8 @@ public class KafkaHdfsTopology {
         if (args.length < 7) {
             System.out.println("USAGE: storm jar </path/to/topo.jar> <com.package.TopologyMainClass> " +
                     "<topo_display_name> <zookeeper_host:port[,zookeeper_host:port]> " +
-                    "<kafka_topic_name> <offset_time_to_start_from> <hdfs_field_delimiter> " +
-                    "<hdfs_output_path> <hdfs_uri>");
+                    "<kafka_topic_name> <offset_time_to_start_from> <{hivecol1,[hivecol2]}> " +
+                    "<{hivepartition1,[hivepartiton2]}> <metastoreUri> <hivedb> <hivetable>");
             System.exit(3);
         }
 
@@ -132,10 +125,12 @@ public class KafkaHdfsTopology {
         //configurePrinterBolt(builder);
 
         // Setup the HDFS Bolt
-        configureHdfsBolt(builder, args[4], args[5], args[6]);
+        //configureHdfsBolt(builder, args[4], args[5], args[6]);
 
         // Setup the Hive Bolt
-        //KafkaHdfsTopology.configureHiveStreamingBolt(builder, colNames, partitionNames, "thrift://localhost:" + hiveServer.getHiveServerThriftPort(), HIVE_DB_NAME, HIVE_TABLE_NAME);
+        String[] cols = args[4].split(",");
+        String[] parts = {args[5]};
+        configureHiveStreamingBolt(builder, cols, parts, args[6], args[7], args[8]);
 
         // Topology
         Config conf = new Config();
