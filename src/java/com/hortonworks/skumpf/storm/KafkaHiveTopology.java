@@ -33,6 +33,7 @@ import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy;
 import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
 import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 import org.apache.storm.hive.bolt.HiveBolt;
+import org.apache.storm.hive.bolt.mapper.DelimitedRecordHiveMapper;
 import org.apache.storm.hive.bolt.mapper.JsonRecordHiveMapper;
 import org.apache.storm.hive.common.HiveOptions;
 import storm.kafka.KafkaSpout;
@@ -71,9 +72,9 @@ public class KafkaHiveTopology {
 
     public static void configureHiveStreamingBolt(TopologyBuilder builder, String[] colNames, String[] partitionCol, String metastoreUri, String dbName, String tableName) {
 
-        JsonRecordHiveMapper mapper = new JsonRecordHiveMapper()
-                .withColumnFields(new Fields(colNames))
-                .withPartitionFields(new Fields(partitionCol));
+        DelimitedRecordHiveMapper mapper = new DelimitedRecordHiveMapper()
+                .withColumnFields(new Fields(colNames));
+                //.withPartitionFields(new Fields(partitionCol));
         HiveOptions hiveOptions = new HiveOptions(metastoreUri, dbName, tableName, mapper)
                 .withAutoCreatePartitions(true)
                 .withTxnsPerBatch(100)
