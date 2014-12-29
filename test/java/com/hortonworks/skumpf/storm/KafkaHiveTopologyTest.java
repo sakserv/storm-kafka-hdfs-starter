@@ -57,6 +57,9 @@ public class KafkaHiveTopologyTest {
     // HDFS
     private HdfsCluster hdfsCluster;
 
+    // Hive MetaStore
+    private HiveLocalMetaStore hiveLocalMetaStore;
+
     // HiveServer2
     private HiveLocalServer hiveServer;
 
@@ -78,10 +81,18 @@ public class KafkaHiveTopologyTest {
         // Enable debug mode and start Storm
         stormCluster = new LocalCluster(zkCluster.getZkHostName(), Long.parseLong(zkCluster.getZkPort()));
 
+        // Start HiveMetaStore
+        hiveLocalMetaStore = new HiveLocalMetaStore();
+        try {
+            hiveLocalMetaStore.start();
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        hiveLocalMetaStore.dumpMetaStoreConf();
+
         // Start HiveServer
-        hiveServer = new HiveLocalServer();
+        hiveServer = new HiveLocalServer(hiveLocalMetaStore.getMetaStoreUri());
         hiveServer.start();
-        //hiveServer.getMetastoreUri();
     }
 
     @After
@@ -89,6 +100,13 @@ public class KafkaHiveTopologyTest {
 
         // Stop HiveServer
         hiveServer.stop();
+
+        // Stop HiveMetaStore
+        try {
+            hiveLocalMetaStore.stop();
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
 
         // Stop Storm
         stormCluster.killTopology(TEST_TOPOLOGY_NAME);
@@ -116,10 +134,6 @@ public class KafkaHiveTopologyTest {
         String[] partitionNames = {"dt"};
 
         String[] colNames = {"id", "msg"};
-
-        hiveServer.dumpConfig();
-        //System.exit(1);
-        System.out.println("HIVE: MetaStore URI" + hiveServer.getMetastoreUri());
 
         // Load the Hive JDBC driver
         try {
@@ -202,7 +216,7 @@ public class KafkaHiveTopologyTest {
         System.out.println("STORM: Starting Topology: " + TEST_TOPOLOGY_NAME);
         TopologyBuilder builder = new TopologyBuilder();
         KafkaHdfsTopology.configureKafkaSpout(builder, zkCluster.getZkConnectionString(), TEST_TOPIC, "-2");
-        KafkaHdfsTopology.configureHiveStreamingBolt(builder, colNames, partitionNames, "thrift://localhost:" + hiveServer.getHiveServerThriftPort(), HIVE_DB_NAME, HIVE_TABLE_NAME);
+        KafkaHiveTopology.configureHiveStreamingBolt(builder, colNames, partitionNames, hiveLocalMetaStore.getMetaStoreUri(), HIVE_DB_NAME, HIVE_TABLE_NAME);
         //KafkaHdfsTopology.configureHdfsBolt(builder, ",", "/tmp/kafka_data", hdfsCluster.getHdfsUriString());
         //MyPipeTopology.configurePrinterBolt(builder);
         stormCluster.submitTopology(TEST_TOPOLOGY_NAME, conf, builder.createTopology());

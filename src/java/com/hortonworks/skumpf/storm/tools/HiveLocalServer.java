@@ -14,12 +14,23 @@ public class HiveLocalServer {
     HiveServer2 server = new HiveServer2();
 
     public HiveLocalServer() {
+        configureHiveServer();
+    }
+
+    public HiveLocalServer(String metaStoreUri) {
+        configureHiveServer();
+        hiveConf.set("hive.metastore.uris", metaStoreUri);
+    }
+
+    public void configureHiveServer() {
         hiveConf = new HiveConf(getClass());
-        hiveConf.set("javax.jdo.option.ConnectionURL", "jdbc:derby:;databaseName=/tmp/metastore_db;create=true");
-        hiveConf.set("javax.jdo.option.ConnectionDriverName", "org.apache.derby.jdbc.EmbeddedDriver");
+        //hiveConf.set("javax.jdo.option.ConnectionURL", "jdbc:derby:;databaseName=/tmp/metastore_db;create=true");
+        //hiveConf.set("javax.jdo.option.ConnectionDriverName", "org.apache.derby.jdbc.EmbeddedDriver");
         hiveConf.set("hive.metastore.warehouse.dir", "/tmp/warehouse_dir");
         hiveConf.set(HiveConf.ConfVars.HIVE_SUPPORT_CONCURRENCY.varname, "false");
         hiveConf.set("hive.root.logger", "DEBUG,console");
+        hiveConf.set("datanucleus.autoCreateSchema", "true");
+        hiveConf.set("datanucleus.fixedDatastore", "false");
     }
 
     public void start() {
@@ -36,12 +47,6 @@ public class HiveLocalServer {
         System.out.println("HIVE: HiveLocalServer successfully stopped.");
     }
 
-    public String getMetastoreUri() {
-        String metastoreUri = String.valueOf(server.getHiveConf().get("hive.metastore.uris"));
-        System.out.println("HIVE: Metastore URI is: " + metastoreUri);
-        return metastoreUri;
-    }
-
     public String getHiveServerThriftPort() {
         return server.getHiveConf().get("hive.server2.thrift.port");
     }
@@ -50,7 +55,6 @@ public class HiveLocalServer {
         for(Service service: server.getServices()) {
             System.out.println("HIVE: HiveServer2 Services Name:" + service.getName() + " CONF: " + String.valueOf(service.getHiveConf().getAllProperties()));
         }
-        //System.out.println("HIVE: HiveServer2 Config: " + String.valueOf(server.getHiveConf().getAllProperties()));
     }
 
 }
