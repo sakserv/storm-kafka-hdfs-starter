@@ -1,4 +1,4 @@
-package com.hortonworks.skumpf.storm.tools;
+package com.hortonworks.skumpf.minicluster;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -9,27 +9,39 @@ import java.io.IOException;
 /**
  * Created by skumpf on 12/6/14.
  */
-public class HdfsCluster {
+public class HdfsLocalCluster implements MiniCluster {
 
     private static MiniDFSCluster.Builder clusterBuilder;
     private static MiniDFSCluster cluster;
+    private static Configuration conf = new Configuration();
     private static final String DEFAULT_LOG_DIR = "/tmp/embedded/hdfs/";
 
-    public HdfsCluster() {
-        clusterBuilder = new MiniDFSCluster.Builder(createConfiguration());
+    public HdfsLocalCluster() {
+        configure();
+        clusterBuilder = new MiniDFSCluster.Builder(getConf());
     }
 
-    private static Configuration createConfiguration() {
-        Configuration conf = new Configuration();
+    public void configure() {
         conf.setBoolean("dfs.permissions", false);
+    }
+
+    public Configuration getConf() {
         return conf;
     }
 
-    public void startHdfs() {
+    public void dumpConfig() {
+        System.out.println("HDFS CONF: " + String.valueOf(conf.toString()));
+    }
+
+    public void start() {
+        start(1);
+    }
+
+    public void start(int numOfDataNodes) {
         System.out.println("HDFS: Starting MiniDfsCluster");
         try {
 
-            cluster = clusterBuilder.numDataNodes(1)
+            cluster = clusterBuilder.numDataNodes(numOfDataNodes)
             .format(true)
             .racks(null)
             .build();
@@ -37,11 +49,11 @@ public class HdfsCluster {
             System.out.println("HDFS: MiniDfsCluster started at " + cluster.getFileSystem().getCanonicalServiceName());
         } catch(IOException e) {
             System.out.println("ERROR: Failed to start MiniDfsCluster");
-            System.exit(3);
+            e.printStackTrace();
         }
     }
 
-    public void stopHdfs() {
+    public void stop() {
         System.out.println("HDFS: Stopping MiniDfsCluster");
         cluster.shutdown();
         System.out.println("HDFS: MiniDfsCluster Stopped");
@@ -49,22 +61,24 @@ public class HdfsCluster {
     }
 
     public String getHdfsUriString() {
+        String hdfsUriString = "";
         try {
-            return "hdfs://" + cluster.getFileSystem().getCanonicalServiceName();
+            hdfsUriString = "hdfs://" + cluster.getFileSystem().getCanonicalServiceName();
         } catch(IOException e) {
             System.out.println("ERROR: Failed to return MiniDFsCluster URI");
-            System.exit(3);
+            e.printStackTrace();
         }
-        return "";
+        return hdfsUriString;
     }
 
     public FileSystem getHdfsFileSystemHandle() {
+        FileSystem hdfsFileSystemHandle = null;
         try {
-            return cluster.getFileSystem();
+            hdfsFileSystemHandle = cluster.getFileSystem();
         } catch(IOException e) {
             System.out.println("ERROR: Failed to return MiniDFsCluster URI");
-            System.exit(3);
+            e.printStackTrace();
         }
-        return null;
+        return hdfsFileSystemHandle;
     }
 }

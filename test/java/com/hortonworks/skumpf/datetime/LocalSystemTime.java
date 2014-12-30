@@ -1,4 +1,4 @@
-package com.hortonworks.skumpf.storm.tools;
+package com.hortonworks.skumpf.datetime;
 
 import kafka.utils.Time;
 

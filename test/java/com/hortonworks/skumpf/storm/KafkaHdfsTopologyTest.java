@@ -3,9 +3,9 @@ package com.hortonworks.skumpf.storm;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.topology.TopologyBuilder;
-import com.hortonworks.skumpf.storm.tools.HdfsCluster;
-import com.hortonworks.skumpf.storm.tools.KafkaLocalBroker;
-import com.hortonworks.skumpf.storm.tools.ZookeeperLocalCluster;
+import com.hortonworks.skumpf.minicluster.HdfsCluster;
+import com.hortonworks.skumpf.minicluster.KafkaLocalBroker;
+import com.hortonworks.skumpf.minicluster.ZookeeperLocalCluster;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
@@ -64,7 +64,7 @@ public class KafkaHdfsTopologyTest {
 
         // Start HDFS
         hdfsCluster = new HdfsCluster();
-        hdfsCluster.startHdfs();
+        hdfsCluster.start();
 
         // Enable debug mode and start Storm
         stormCluster = new LocalCluster(zkCluster.getZkHostName(), Long.parseLong(zkCluster.getZkPort()));
@@ -82,7 +82,7 @@ public class KafkaHdfsTopologyTest {
         kafkaCluster.deleteOldTopics();
 
         // Stop HDFS
-        hdfsCluster.stopHdfs();
+        hdfsCluster.stop();
 
         // Stop ZK
         try {

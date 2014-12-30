@@ -1,36 +1,36 @@
-package com.hortonworks.skumpf.storm.tools;
+package com.hortonworks.skumpf.minicluster;
 
 import org.apache.hadoop.hive.conf.HiveConf;
-import org.apache.hadoop.hive.metastore.HiveMetaStore;
 import org.apache.hive.service.Service;
 import org.apache.hive.service.server.HiveServer2;
 
 /**
  * Created by skumpf on 12/20/14.
  */
-public class HiveLocalServer {
+public class HiveLocalServer2 {
 
     HiveConf hiveConf;
     HiveServer2 server = new HiveServer2();
 
-    public HiveLocalServer() {
+    public HiveLocalServer2() {
         configureHiveServer();
     }
 
-    public HiveLocalServer(String metaStoreUri) {
+    public HiveLocalServer2(String metaStoreUri) {
         configureHiveServer();
         hiveConf.set("hive.metastore.uris", metaStoreUri);
     }
 
     public void configureHiveServer() {
         hiveConf = new HiveConf(getClass());
-        //hiveConf.set("javax.jdo.option.ConnectionURL", "jdbc:derby:;databaseName=/tmp/metastore_db;create=true");
+        hiveConf.set("javax.jdo.option.ConnectionURL", "jdbc:derby:;databaseName=metastore_db");
         //hiveConf.set("javax.jdo.option.ConnectionDriverName", "org.apache.derby.jdbc.EmbeddedDriver");
-        hiveConf.set("hive.metastore.warehouse.dir", "/tmp/warehouse_dir");
-        hiveConf.set(HiveConf.ConfVars.HIVE_SUPPORT_CONCURRENCY.varname, "false");
-        hiveConf.set("hive.root.logger", "DEBUG,console");
-        hiveConf.set("datanucleus.autoCreateSchema", "true");
-        hiveConf.set("datanucleus.fixedDatastore", "false");
+        //hiveConf.set("hive.metastore.warehouse.dir", "/tmp/warehouse_dir");
+        //hiveConf.set(HiveConf.ConfVars.HIVE_SUPPORT_CONCURRENCY.varname, "false");
+        //hiveConf.set("hive.root.logger", "DEBUG,console");
+        //hiveConf.set("hive.txn.manager", "org.apache.hadoop.hive.ql.lockmgr.DbTxnManager");
+        //hiveConf.set("hive.compactor.initiator.on", "true");
+        //hiveConf.set("hive.compactor.worker.threads", "5");
     }
 
     public void start() {

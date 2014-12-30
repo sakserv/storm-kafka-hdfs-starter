@@ -1,4 +1,4 @@
-package com.hortonworks.skumpf.storm.tools;
+package com.hortonworks.skumpf.datetime;
 
 import java.util.GregorianCalendar;
 

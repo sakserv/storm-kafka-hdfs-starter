@@ -1,4 +1,4 @@
-package com.hortonworks.skumpf.storm.tools;
+package com.hortonworks.skumpf.minicluster;
 
 import org.apache.curator.test.TestingServer;
 
