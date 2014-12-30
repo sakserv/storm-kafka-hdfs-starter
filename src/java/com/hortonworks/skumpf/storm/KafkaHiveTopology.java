@@ -23,18 +23,9 @@ import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.tuple.Fields;
 import com.hortonworks.skumpf.storm.bolt.PrinterBolt;
-import org.apache.storm.hdfs.bolt.HdfsBolt;
-import org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat;
-import org.apache.storm.hdfs.bolt.format.DelimitedRecordFormat;
-import org.apache.storm.hdfs.bolt.format.FileNameFormat;
-import org.apache.storm.hdfs.bolt.format.RecordFormat;
-import org.apache.storm.hdfs.bolt.rotation.FileRotationPolicy;
-import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy;
-import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
-import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
+import com.hortonworks.skumpf.storm.scheme.TestScheme;
 import org.apache.storm.hive.bolt.HiveBolt;
 import org.apache.storm.hive.bolt.mapper.DelimitedRecordHiveMapper;
-import org.apache.storm.hive.bolt.mapper.JsonRecordHiveMapper;
 import org.apache.storm.hive.common.HiveOptions;
 import storm.kafka.KafkaSpout;
 import storm.kafka.SpoutConfig;
@@ -53,7 +44,6 @@ public class KafkaHiveTopology {
                 kafkaTopic,      // Kafka topic to read from
                 "/" + kafkaTopic, // Root path in Zookeeper for the spout to store consumer offsets
                 UUID.randomUUID().toString());  // ID for storing consumer offsets in Zookeeper
-        //spoutConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
         spoutConfig.scheme = new SchemeAsMultiScheme(new TestScheme());
 
         // Allow for passing in an offset time
@@ -73,8 +63,8 @@ public class KafkaHiveTopology {
     public static void configureHiveStreamingBolt(TopologyBuilder builder, String[] colNames, String[] partitionCol, String metastoreUri, String dbName, String tableName) {
 
         DelimitedRecordHiveMapper mapper = new DelimitedRecordHiveMapper()
-                .withColumnFields(new Fields(colNames));
-                //.withPartitionFields(new Fields(partitionCol));
+                .withColumnFields(new Fields(colNames))
+                .withPartitionFields(new Fields(partitionCol));
         HiveOptions hiveOptions = new HiveOptions(metastoreUri, dbName, tableName, mapper)
                 .withAutoCreatePartitions(true)
                 .withTxnsPerBatch(100)
@@ -85,6 +75,10 @@ public class KafkaHiveTopology {
         HiveBolt bolt = new HiveBolt(hiveOptions);
         builder.setBolt("hivebolt", bolt, 1).shuffleGrouping("kafkaspout");
 
+    }
+
+    public static void configurePrinterBolt(TopologyBuilder builder) {
+        builder.setBolt("print", new PrinterBolt(), 1).shuffleGrouping("kafkaspout");
     }
 
     public static void main(String[] args) throws Exception {

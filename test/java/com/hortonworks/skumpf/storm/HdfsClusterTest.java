@@ -1,6 +1,6 @@
 package com.hortonworks.skumpf.storm;
 
-import com.hortonworks.skumpf.storm.tools.HdfsCluster;
+import com.hortonworks.skumpf.minicluster.HdfsCluster;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -22,12 +22,12 @@ public class HdfsClusterTest {
     @Before
     public void setUp(){
         dfsCluster = new HdfsCluster();
-        dfsCluster.startHdfs();
+        dfsCluster.start();
     }
 
     @After
     public void tearDown(){
-        dfsCluster.stopHdfs();
+        dfsCluster.stop();
     }
 
     @Test

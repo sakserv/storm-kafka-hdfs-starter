@@ -1,4 +1,4 @@
-package com.hortonworks.skumpf.storm;
+package com.hortonworks.skumpf.storm.scheme;
 
 import java.io.UnsupportedEncodingException;
 import java.sql.Timestamp;
