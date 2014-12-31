@@ -3,7 +3,7 @@ package com.hortonworks.skumpf.storm;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.topology.TopologyBuilder;
-import com.hortonworks.skumpf.minicluster.HdfsCluster;
+import com.hortonworks.skumpf.minicluster.HdfsLocalCluster;
 import com.hortonworks.skumpf.minicluster.KafkaLocalBroker;
 import com.hortonworks.skumpf.minicluster.ZookeeperLocalCluster;
 import kafka.javaapi.producer.Producer;
@@ -49,7 +49,7 @@ public class KafkaHdfsTopologyTest {
     private TopologyBuilder builder = new TopologyBuilder();
 
     // HDFS
-    private HdfsCluster hdfsCluster;
+    private HdfsLocalCluster hdfsCluster;
 
     @Before
     public void setUp() {
@@ -59,11 +59,11 @@ public class KafkaHdfsTopologyTest {
         zkCluster.start();
 
         // Start Kafka
-        kafkaCluster = new KafkaLocalBroker(DEFAULT_LOG_DIR, KAFKA_PORT, BROKER_ID, zkCluster.getZkConnectionString());
+        kafkaCluster = new KafkaLocalBroker(TEST_TOPIC, DEFAULT_LOG_DIR, KAFKA_PORT, BROKER_ID, zkCluster.getZkConnectionString());
         kafkaCluster.start();
 
         // Start HDFS
-        hdfsCluster = new HdfsCluster();
+        hdfsCluster = new HdfsLocalCluster();
         hdfsCluster.start();
 
         // Enable debug mode and start Storm
@@ -85,12 +85,8 @@ public class KafkaHdfsTopologyTest {
         hdfsCluster.stop();
 
         // Stop ZK
-        try {
-            zkCluster.stop();
-        } catch(IOException e) {
-            System.out.println("ERROR: Failed to stop ZK... killing");
-            System.exit(3);
-        }
+        zkCluster.stop();
+
     }
 
     @Test
@@ -131,7 +127,7 @@ public class KafkaHdfsTopologyTest {
         try {
             Thread.sleep(10000L);
         } catch (InterruptedException e) {
-            System.exit(3);
+            System.exit(1);
         }
 
         FileSystem hdfsFsHandle = hdfsCluster.getHdfsFileSystemHandle();

@@ -1,6 +1,6 @@
-package com.hortonworks.skumpf.storm;
+package com.hortonworks.skumpf.minicluster.test;
 
-import com.hortonworks.skumpf.minicluster.HdfsCluster;
+import com.hortonworks.skumpf.minicluster.HdfsLocalCluster;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -15,13 +15,13 @@ import java.io.IOException;
 /**
  * Created by skumpf on 12/6/14.
  */
-public class HdfsClusterTest {
+public class HdfsLocalClusterTest {
 
-    private HdfsCluster dfsCluster;
+    private HdfsLocalCluster dfsCluster;
 
     @Before
     public void setUp(){
-        dfsCluster = new HdfsCluster();
+        dfsCluster = new HdfsLocalCluster();
         dfsCluster.start();
     }
 

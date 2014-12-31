@@ -24,6 +24,7 @@ import backtype.storm.topology.TopologyBuilder;
 import backtype.storm.tuple.Fields;
 import com.hortonworks.skumpf.storm.bolt.PrinterBolt;
 import com.hortonworks.skumpf.storm.scheme.TestScheme;
+import com.hortonworks.skumpf.storm.spout.RandomSentenceSpout;
 import org.apache.storm.hive.bolt.HiveBolt;
 import org.apache.storm.hive.bolt.mapper.DelimitedRecordHiveMapper;
 import org.apache.storm.hive.common.HiveOptions;
@@ -60,6 +61,10 @@ public class KafkaHiveTopology {
 
     }
 
+    public static void configureRandomSentenceSpout(TopologyBuilder builder) {
+        builder.setSpout("randomsentencespout", new RandomSentenceSpout(), 1);
+    }
+
     public static void configureHiveStreamingBolt(TopologyBuilder builder, String[] colNames, String[] partitionCol, String metastoreUri, String dbName, String tableName) {
 
         DelimitedRecordHiveMapper mapper = new DelimitedRecordHiveMapper()
@@ -81,6 +86,10 @@ public class KafkaHiveTopology {
         builder.setBolt("print", new PrinterBolt(), 1).shuffleGrouping("kafkaspout");
     }
 
+    public static void configurePrinterBolt(TopologyBuilder builder, String spoutName) {
+        builder.setBolt("print", new PrinterBolt(), 1).shuffleGrouping(spoutName);
+    }
+
     public static void main(String[] args) throws Exception {
 
         if (args.length < 7) {
@@ -88,7 +97,7 @@ public class KafkaHiveTopology {
                     "<topo_display_name> <zookeeper_host:port[,zookeeper_host:port]> " +
                     "<kafka_topic_name> <offset_time_to_start_from> <hivecol1,[hivecol2]> " +
                     "<hivepartition1,[hivepartiton2]> <metastoreUri> <hivedb> <hivetable>");
-            System.exit(3);
+            System.exit(1);
         }
 
         TopologyBuilder builder = new TopologyBuilder();

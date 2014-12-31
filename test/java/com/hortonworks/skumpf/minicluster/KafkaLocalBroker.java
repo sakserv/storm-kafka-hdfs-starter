@@ -1,6 +1,7 @@
 package com.hortonworks.skumpf.minicluster;
 
 import com.hortonworks.skumpf.datetime.LocalSystemTime;
+import com.hortonworks.skumpf.util.FileUtils;
 import kafka.server.KafkaConfig;
 import kafka.server.KafkaServer;
 
@@ -11,33 +12,49 @@ import java.util.Properties;
  * In memory Kafka Broker for testing
  */
 
-public class KafkaLocalBroker {
+public class KafkaLocalBroker implements MiniCluster {
 
     //location of kafka logging file:
+    public static final String DEFAULT_TEST_TOPIC = "test-topic";
     public static final String DEFAULT_LOG_DIR = "/tmp/embedded/kafka/";
-    public static final String TEST_TOPIC = "test-topic";
+    public static final int DEFAULT_PORT = 9092;
+    public static final int DEFAULT_BROKER_ID = 1;
+    public static final String DEFAULT_ZK_CONNECTION_STRING = "localhost:2181";
 
-    public KafkaConfig kafkaConfig;
-    //This is the actual Kafka server:
-    public KafkaServer kafkaServer;
+    public KafkaConfig conf;
+    public KafkaServer server;
+
+    private String topic;
+    private String logDir;
+    private int port;
+    private int brokerId;
+    private String zkConnString;
 
     /**
      * default constructor
      */
     public KafkaLocalBroker(){
-        this(DEFAULT_LOG_DIR, 9092, 1, "localhost:2181");
+        this(DEFAULT_TEST_TOPIC, DEFAULT_LOG_DIR, DEFAULT_PORT, DEFAULT_BROKER_ID, DEFAULT_ZK_CONNECTION_STRING);
     }
 
-    public KafkaLocalBroker(Properties properties){
-        kafkaConfig = new KafkaConfig(properties);
-        kafkaServer = new KafkaServer(kafkaConfig, new LocalSystemTime());
+    public KafkaLocalBroker(String topic) {
+        this(topic, DEFAULT_LOG_DIR, DEFAULT_PORT, DEFAULT_BROKER_ID, DEFAULT_ZK_CONNECTION_STRING);
     }
 
-    public KafkaLocalBroker(String logDir, int port, int brokerId, String zkConnString){
-        this(createProperties(logDir, port, brokerId, zkConnString));
+    public KafkaLocalBroker(String topic, String logDir, int port, int brokerId, String zkConnString){
+        this.topic = topic;
+        this.logDir = logDir;
+        this.port = port;
+        this.brokerId = brokerId;
+        this.zkConnString = zkConnString;
+        configure();
     }
 
-    private static Properties createProperties(String logDir, int port, int brokerId, String zkConnString) {
+    public void configure() {
+        configure(topic, logDir, port, brokerId, zkConnString);
+    }
+
+    public void configure(String topic, String logDir, int port, int brokerId, String zkConnString) {
         Properties properties = new Properties();
         properties.put("port", port+"");
         properties.put("broker.id", brokerId+"");
@@ -45,18 +62,19 @@ public class KafkaLocalBroker {
         properties.put("enable.zookeeper", "true");
         properties.put("zookeeper.connect", zkConnString);
         properties.put("advertised.host.name", "localhost");
-        return properties;
+        conf = new KafkaConfig(properties);
     }
 
     public void start() {
-        System.out.println("KAFKA: Starting Embedded Kafka On Port " + kafkaServer.config().port());
-        kafkaServer.startup();
-        System.out.println("KAFKA: Embedded Kafka Successfully Started On Port " + kafkaServer.config().port());
+        server = new KafkaServer(conf, new LocalSystemTime());
+        System.out.println("KAFKA: Starting Embedded Kafka On Port " + server.config().port());
+        server.startup();
+        System.out.println("KAFKA: Embedded Kafka Successfully Started On Port " + server.config().port());
     }
 
     public void stop(){
         System.out.println("KAFKA: Stopping Embedded Kafka");
-        kafkaServer.shutdown();
+        server.shutdown();
         System.out.println("KAFKA: Embedded Kafka Successfully Stopped");
 
         System.out.println("KAFKA: Deleting Old Topics");
@@ -64,26 +82,19 @@ public class KafkaLocalBroker {
         System.out.println("KAFKA: Successfully Deleted Old Topics");
     }
 
-    public void deleteOldTopics() {
-        //delete old Kafka topic files
-        File logDir = new File(DEFAULT_LOG_DIR+"/"+TEST_TOPIC+"-0");
-        if (logDir.exists()){
-            deleteFolder(logDir);
-        }
+    public void dumpConfig() {
+        System.out.println("KAFKA CONFIG: " + conf.props().toString());
     }
 
-    public static void deleteFolder(File folder) {
-        File[] files = folder.listFiles();
-        if(files!=null) { //some JVMs return null for empty dirs
-            for(File f: files) {
-                if(f.isDirectory()) {
-                    System.out.println("KAFKA: Deleting " + f.getAbsolutePath());
-                    deleteFolder(f);
-                } else {
-                    f.delete();
-                }
-            }
+    public int getPort() {
+        return port;
+    }
+
+    public void deleteOldTopics() {
+        //delete old Kafka topic files
+        File delLogDir = new File(logDir + "/" + topic + "-0");
+        if (delLogDir.exists()){
+            FileUtils.deleteFolder(delLogDir);
         }
-        folder.delete();
     }
 }
