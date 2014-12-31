@@ -13,7 +13,7 @@ public class StormLocalCluster implements MiniCluster {
     LocalCluster cluster;
     private String zkHost;
     private Long zkPort;
-    Config conf;
+    Config conf = new Config();
 
     public StormLocalCluster(String zkHost, Long zkPort) {
         configure();
@@ -22,13 +22,13 @@ public class StormLocalCluster implements MiniCluster {
     }
 
     public void configure() {
-        conf = new Config();
         conf.setDebug(false);
         conf.setNumWorkers(3);
     }
 
     public void start() {
-        cluster.activate("StormLocalCluster");
+        System.out.println("STORM: Instantiating LocalCluster");
+        cluster = new LocalCluster(zkHost, zkPort);
     }
 
     public void stop() {

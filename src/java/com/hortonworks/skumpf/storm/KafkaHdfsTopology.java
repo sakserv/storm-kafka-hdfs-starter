@@ -93,7 +93,7 @@ public class KafkaHdfsTopology {
                     "<topo_display_name> <zookeeper_host:port[,zookeeper_host:port]> " +
                     "<kafka_topic_name> <offset_time_to_start_from> <hdfs_field_delimiter> " +
                     "<hdfs_output_path> <hdfs_uri>");
-            System.exit(3);
+            System.exit(1);
         }
 
         TopologyBuilder builder = new TopologyBuilder();

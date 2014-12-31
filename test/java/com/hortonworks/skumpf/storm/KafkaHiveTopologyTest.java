@@ -21,7 +21,9 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.util.*;
@@ -62,9 +64,6 @@ public class KafkaHiveTopologyTest {
     // Hive MetaStore
     private HiveLocalMetaStore hiveLocalMetaStore;
 
-    // HiveServer2
-    private HiveLocalServer hiveServer;
-
     @Before
     public void setUp() {
 
@@ -72,40 +71,27 @@ public class KafkaHiveTopologyTest {
         zkCluster = new ZookeeperLocalCluster();
         zkCluster.start();
 
-        // Start Kafka
-        kafkaCluster = new KafkaLocalBroker(DEFAULT_LOG_DIR, KAFKA_PORT, BROKER_ID, zkCluster.getZkConnectionString());
-        kafkaCluster.start();
-
         // Start HDFS
         hdfsCluster = new HdfsLocalCluster();
         hdfsCluster.start();
 
-        // Enable debug mode and start Storm
-        stormCluster = new StormLocalCluster(zkCluster.getZkHostName(), Long.parseLong(zkCluster.getZkPort()));
-
         // Start HiveMetaStore
         hiveLocalMetaStore = new HiveLocalMetaStore();
-        try {
-            hiveLocalMetaStore.start();
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-        //hiveLocalMetaStore.dumpMetaStoreConf();
+        hiveLocalMetaStore.start();
+
+        // Start Kafka
+        kafkaCluster = new KafkaLocalBroker(TEST_TOPIC, DEFAULT_LOG_DIR, KAFKA_PORT, BROKER_ID, zkCluster.getZkConnectionString());
+        kafkaCluster.start();
+
+
+        // Start Storm
+        stormCluster = new StormLocalCluster(zkCluster.getZkHostName(), Long.parseLong(zkCluster.getZkPort()));
+        stormCluster.start();
 
     }
 
     @After
     public void tearDown() {
-
-        // Stop HiveServer
-        //hiveServer.stop();
-
-        // Stop HiveMetaStore
-        try {
-            hiveLocalMetaStore.stop();
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
 
         // Stop Storm
         stormCluster.stop(TEST_TOPOLOGY_NAME);
@@ -114,126 +100,73 @@ public class KafkaHiveTopologyTest {
         kafkaCluster.stop();
         kafkaCluster.deleteOldTopics();
 
+        // Stop HiveMetaStore
+        hiveLocalMetaStore.stop();
+
         // Stop HDFS
         hdfsCluster.stop();
 
         // Stop ZK
-        try {
-            zkCluster.stop();
-        } catch(IOException e) {
-            System.out.println("ERROR: Failed to stop ZK... killing");
-            System.exit(3);
-        }
+        zkCluster.stop();
+
     }
 
-    @Test
-    public void testKafkaHiveTopology() {
+    public void createTable() throws TException {
+        HiveMetaStoreClient hiveClient = new HiveMetaStoreClient(hiveLocalMetaStore.getConf());
 
-        String[] partitionNames = {"dt"};
+        hiveClient.dropTable(HIVE_DB_NAME, HIVE_TABLE_NAME, true, true);
 
-        String[] colNames = {"id", "msg"};
+        // Define the cols
+        List<FieldSchema> cols = new ArrayList<FieldSchema>();
+        cols.add(new FieldSchema("id", Constants.INT_TYPE_NAME, ""));
+        cols.add(new FieldSchema("msg", Constants.STRING_TYPE_NAME, ""));
 
-        // Load the Hive JDBC driver
-        //try {
-        //    System.out.println("HIVE: Loading the Hive JDBC Driver");
-        //    Class.forName("org.apache.hive.jdbc.HiveDriver");
-        //} catch(ClassNotFoundException e) {
-        //    e.printStackTrace();
-        //}
+        // Values for the StorageDescriptor
+        String location = "/tmp/test_table";
+        String inputFormat = "org.apache.hadoop.hive.ql.io.orc.OrcInputFormat";
+        String outputFormat = "org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat";
+        int numBuckets = 16;
+        Map<String,String> orcProps = new HashMap<String, String>();
+        orcProps.put("orc.compress", "NONE");
+        SerDeInfo serDeInfo = new SerDeInfo(OrcSerde.class.getSimpleName(), OrcSerde.class.getName(), orcProps);
+        List<String> bucketCols = new ArrayList<String>();
+        bucketCols.add("id");
 
+        // Build the StorageDescriptor
+        StorageDescriptor sd = new StorageDescriptor();
+        sd.setCols(cols);
+        sd.setLocation(location);
+        sd.setInputFormat(inputFormat);
+        sd.setOutputFormat(outputFormat);
+        sd.setNumBuckets(numBuckets);
+        sd.setSerdeInfo(serDeInfo);
+        sd.setBucketCols(bucketCols);
+        sd.setSortCols(new ArrayList<Order>());
+        sd.setParameters(new HashMap<String, String>());
 
-        try {
-            HiveMetaStoreClient hiveClient = new HiveMetaStoreClient(hiveLocalMetaStore.getConf());
+        // Define the table
+        Table tbl = new Table();
+        tbl.setDbName(HIVE_DB_NAME);
+        tbl.setTableName(HIVE_TABLE_NAME);
+        tbl.setSd(sd);
+        tbl.setOwner(System.getProperty("user.name"));
+        tbl.setParameters(new HashMap<String, String>());
+        tbl.setViewOriginalText("");
+        tbl.setViewExpandedText("");
+        tbl.setTableType(TableType.EXTERNAL_TABLE.name());
+        List<FieldSchema> partitions = new ArrayList<FieldSchema>();
+        partitions.add(new FieldSchema("dt", Constants.STRING_TYPE_NAME, ""));
+        tbl.setPartitionKeys(partitions);
 
-            hiveClient.dropTable(HIVE_DB_NAME, HIVE_TABLE_NAME, true, true);
+        // Create the table
+        hiveClient.createTable(tbl);
 
-            // Define the cols
-            List<FieldSchema> cols = new ArrayList<FieldSchema>();
-            cols.add(new FieldSchema("id", Constants.INT_TYPE_NAME, ""));
-            cols.add(new FieldSchema("msg", Constants.STRING_TYPE_NAME, ""));
+        // Describe the table
+        Table createdTable = hiveClient.getTable(HIVE_DB_NAME, HIVE_TABLE_NAME);
+        System.out.println("HIVE: Created Table: " + createdTable.toString());
+    }
 
-            // Values for the StorageDescriptor
-            String location = "/tmp/test_table";
-            String inputFormat = "org.apache.hadoop.hive.ql.io.orc.OrcInputFormat";
-            String outputFormat = "org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat";
-            int numBuckets = 16;
-            Map<String,String> orcProps = new HashMap<String, String>();
-            orcProps.put("orc.compress", "NONE");
-            SerDeInfo serDeInfo = new SerDeInfo(OrcSerde.class.getSimpleName(), OrcSerde.class.getName(), orcProps);
-            List<String> bucketCols = new ArrayList<String>();
-            bucketCols.add("id");
-
-            // Build the StorageDescriptor
-            StorageDescriptor sd = new StorageDescriptor();
-            sd.setCols(cols);
-            sd.setLocation(location);
-            sd.setInputFormat(inputFormat);
-            sd.setOutputFormat(outputFormat);
-            sd.setNumBuckets(numBuckets);
-            sd.setSerdeInfo(serDeInfo);
-            sd.setBucketCols(bucketCols);
-            sd.setSortCols(new ArrayList<Order>());
-            sd.setParameters(new HashMap<String, String>());
-
-            // Define the table
-            Table tbl = new Table();
-            tbl.setDbName(HIVE_DB_NAME);
-            tbl.setTableName(HIVE_TABLE_NAME);
-            tbl.setSd(sd);
-            tbl.setOwner(System.getProperty("user.name"));
-            tbl.setParameters(new HashMap<String, String>());
-            tbl.setViewOriginalText("");
-            tbl.setViewExpandedText("");
-            tbl.setTableType(TableType.EXTERNAL_TABLE.name());
-            List<FieldSchema> partitions = new ArrayList<FieldSchema>();
-            partitions.add(new FieldSchema("dt", Constants.STRING_TYPE_NAME, ""));
-            tbl.setPartitionKeys(partitions);
-
-            // Create the table
-            hiveClient.createTable(tbl);
-
-            // Describe the table
-            Table createdTable = hiveClient.getTable(HIVE_DB_NAME, HIVE_TABLE_NAME);
-            System.out.println("HIVE: Created Table: " + createdTable.toString());
-
-        } catch(MetaException e) {
-            e.printStackTrace();
-        } catch(TException e) {
-            e.printStackTrace();
-        }
-
-        // Establish a JDBC connection
-        //try {
-
-        //    Connection con = DriverManager.getConnection("jdbc:hive2://localhost:" + hiveServer.getHiveServerThriftPort() + "/default", "user", "pass");
-
-        //    String dropDdl = "DROP TABLE " + HIVE_DB_NAME + "." + HIVE_TABLE_NAME;
-
-        //    Statement stmt = con.createStatement();
-        //    System.out.println("HIVE: Running Drop Table Statement: " + dropDdl);
-        //    stmt.execute(dropDdl);
-
-        //    String createDdl = "CREATE TABLE IF NOT EXISTS " + HIVE_DB_NAME + "." + HIVE_TABLE_NAME + " (id INT, msg STRING) " +
-        //        "PARTITIONED BY (dt STRING) " +
-        //        "CLUSTERED BY (id) INTO 16 BUCKETS " +
-        //        "STORED AS ORC tblproperties(\"orc.compress\"=\"NONE\")";
-
-        //    stmt = con.createStatement();
-        //    System.out.println("HIVE: Running Create Table Statement: " + createDdl);
-        //    stmt.execute(createDdl);
-
-        //    System.out.println("HIVE: Validating Table was Created: ");
-        //    ResultSet resultSet = stmt.executeQuery("DESCRIBE FORMATTED " + HIVE_TABLE_NAME);
-        //    while (resultSet.next()) {
-        //        System.out.println(resultSet.getString(1));
-        //    }
-        //} catch(SQLException e) {
-        //    e.printStackTrace();
-        //    System.exit(1);
-        //}
-
-
-
+    public void produceMessages() throws JSONException {
         // Add Producer properties and created the Producer
         Properties props = new Properties();
         props.put("metadata.broker.list", LOCALHOST_BROKER);
@@ -247,14 +180,9 @@ public class KafkaHiveTopologyTest {
 
             // Create the JSON object
             JSONObject obj = new JSONObject();
-            try {
-                obj.put("id", String.valueOf(i));
-                obj.put("msg", "test-message" + 1);
-                obj.put("dt", GenerateRandomDay.genRandomDay());
-            } catch(JSONException e) {
-                e.printStackTrace();
-                System.exit(3);
-            }
+            obj.put("id", String.valueOf(i));
+            obj.put("msg", "test-message" + 1);
+            obj.put("dt", GenerateRandomDay.genRandomDay());
             String payload = obj.toString();
 
             KeyedMessage<String, String> data = new KeyedMessage<String, String>(TEST_TOPIC, null, payload);
@@ -265,42 +193,30 @@ public class KafkaHiveTopologyTest {
 
         // Stop the producer
         producer.close();
+    }
 
-        // Topology
-        Config conf = new Config();
-        conf.setDebug(false);
-        conf.setNumWorkers(3);
-
+    public void runStormKafkaHiveTopology() {
+        String[] partitionNames = {"dt"};
+        String[] colNames = {"id", "msg"};
         System.out.println("STORM: Starting Topology: " + TEST_TOPOLOGY_NAME);
         TopologyBuilder builder = new TopologyBuilder();
         KafkaHiveTopology.configureKafkaSpout(builder, zkCluster.getZkConnectionString(), TEST_TOPIC, "-2");
         KafkaHiveTopology.configureHiveStreamingBolt(builder, colNames, partitionNames, hiveLocalMetaStore.getMetaStoreUri(), HIVE_DB_NAME, HIVE_TABLE_NAME);
-        stormCluster.submitTopology(TEST_TOPOLOGY_NAME, conf, builder.createTopology());
+        stormCluster.submitTopology(TEST_TOPOLOGY_NAME, new Config(), builder.createTopology());
+    }
+
+    @Test
+    public void testKafkaHiveTopology() throws TException, JSONException {
+
+        createTable();
+        produceMessages();
+        runStormKafkaHiveTopology();
 
         try {
             Thread.sleep(10000L);
         } catch (InterruptedException e) {
-            System.exit(3);
+            System.exit(1);
         }
 
-        //FileSystem hdfsFsHandle = hdfsCluster.getHdfsFileSystemHandle();
-        //try {
-        //    RemoteIterator<LocatedFileStatus> listFiles = hdfsFsHandle.listFiles(new Path("/tmp/kafka_data"), true);
-        //    while (listFiles.hasNext()) {
-        //        LocatedFileStatus file = listFiles.next();
-
-        //        System.out.println("HDFS READ: Found File: " + file);
-
-        //        BufferedReader br = new BufferedReader(new InputStreamReader(hdfsFsHandle.open(file.getPath())));
-        //        String line = br.readLine();
-        //        while (line != null) {
-        //            System.out.println("HDFS READ: Found Line: " + line);
-        //            line = br.readLine();
-        //        }
-        //    }
-        //    hdfsFsHandle.close();
-        //} catch(IOException e) {
-        //    System.out.println(e);
-        //}
     }
 }
