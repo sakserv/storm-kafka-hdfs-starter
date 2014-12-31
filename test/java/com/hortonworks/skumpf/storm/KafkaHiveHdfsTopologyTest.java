@@ -1,19 +1,19 @@
 package com.hortonworks.skumpf.storm;
 
 import backtype.storm.Config;
-import backtype.storm.LocalCluster;
 import backtype.storm.topology.TopologyBuilder;
 import com.hortonworks.skumpf.datetime.GenerateRandomDay;
 import com.hortonworks.skumpf.minicluster.*;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
-import net.hydromatic.optiq.*;
-import net.hydromatic.optiq.Schema;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocatedFileStatus;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.TableType;
 import org.apache.hadoop.hive.metastore.api.*;
-import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.hive.ql.io.orc.OrcSerde;
 import org.apache.hadoop.hive.serde.Constants;
 import org.apache.thrift.TException;
@@ -21,17 +21,18 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.sql.*;
 import java.util.*;
 
 /**
  * Created by skumpf on 12/6/14.
  */
-public class KafkaHiveTopologyTest {
+public class KafkaHiveHdfsTopologyTest {
 
     // Kafka static
     private static final String DEFAULT_LOG_DIR = "/tmp/embedded/kafka/";
@@ -46,9 +47,13 @@ public class KafkaHiveTopologyTest {
     // Hive static
     private static final String HIVE_DB_NAME = "default";
     private static final String HIVE_TABLE_NAME = "test";
+    private static final String[] HIVE_COLS = {"id", "msg"};
+    private static final String[] HIVE_PARTITIONS = {"dt"};
+
+    // HDFS static
+    private static final String HDFS_OUTPUT_DIR = "/tmp/kafka_data";
 
     // Zookeeper
-    private String zkHostsString;
     private ZookeeperLocalCluster zkCluster;
 
     // Kafka
@@ -56,13 +61,15 @@ public class KafkaHiveTopologyTest {
 
     // Storm
     private StormLocalCluster stormCluster;
-    private TopologyBuilder builder = new TopologyBuilder();
 
     // HDFS
     private HdfsLocalCluster hdfsCluster;
 
     // Hive MetaStore
     private HiveLocalMetaStore hiveLocalMetaStore;
+
+    // HiveServer2
+    private HiveLocalServer2 hiveLocalServer2;
 
     @Before
     public void setUp() {
@@ -79,26 +86,32 @@ public class KafkaHiveTopologyTest {
         hiveLocalMetaStore = new HiveLocalMetaStore();
         hiveLocalMetaStore.start();
 
+        hiveLocalServer2 = new HiveLocalServer2(hiveLocalMetaStore.getMetaStoreUri());
+        hiveLocalServer2.start();
+
         // Start Kafka
         kafkaCluster = new KafkaLocalBroker(TEST_TOPIC, DEFAULT_LOG_DIR, KAFKA_PORT, BROKER_ID, zkCluster.getZkConnectionString());
         kafkaCluster.start();
 
-
         // Start Storm
         stormCluster = new StormLocalCluster(zkCluster.getZkHostName(), Long.parseLong(zkCluster.getZkPort()));
         stormCluster.start();
-
     }
 
     @After
     public void tearDown() {
 
         // Stop Storm
-        stormCluster.stop(TEST_TOPOLOGY_NAME);
+        try {
+            stormCluster.stop(TEST_TOPOLOGY_NAME);
+        } catch(IllegalStateException e) { }
 
         // Stop Kafka
         kafkaCluster.stop();
         kafkaCluster.deleteOldTopics();
+
+        // Stop HiveServer2
+        hiveLocalServer2.stop();
 
         // Stop HiveMetaStore
         hiveLocalMetaStore.stop();
@@ -108,7 +121,6 @@ public class KafkaHiveTopologyTest {
 
         // Stop ZK
         zkCluster.stop();
-
     }
 
     public void createTable() throws TException {
@@ -175,8 +187,8 @@ public class KafkaHiveTopologyTest {
         Producer<String, String> producer = new Producer<String, String>(config);
 
         // Send 10 messages to the local kafka server:
-        System.out.println("KAFKA: Preparing To Send 1000 Initial Messages");
-        for (int i=0; i<10; i++){
+        System.out.println("KAFKA: Preparing To Send 50 Initial Messages");
+        for (int i=0; i<50; i++){
 
             // Create the JSON object
             JSONObject obj = new JSONObject();
@@ -195,23 +207,89 @@ public class KafkaHiveTopologyTest {
         producer.close();
     }
 
-    public void runStormKafkaHiveTopology() {
-        String[] partitionNames = {"dt"};
-        String[] colNames = {"id", "msg"};
+    public void runStormKafkaHiveHdfsTopology() {
         System.out.println("STORM: Starting Topology: " + TEST_TOPOLOGY_NAME);
         TopologyBuilder builder = new TopologyBuilder();
         KafkaHiveTopology.configureKafkaSpout(builder, zkCluster.getZkConnectionString(), TEST_TOPIC, "-2");
-        KafkaHiveTopology.configureHiveStreamingBolt(builder, colNames, partitionNames, hiveLocalMetaStore.getMetaStoreUri(), HIVE_DB_NAME, HIVE_TABLE_NAME);
+        KafkaHdfsTopology.configureHdfsBolt(builder, ",", HDFS_OUTPUT_DIR, hdfsCluster.getHdfsUriString());
+        KafkaHiveTopology.configureHiveStreamingBolt(builder, HIVE_COLS, HIVE_PARTITIONS, hiveLocalMetaStore.getMetaStoreUri(), HIVE_DB_NAME, HIVE_TABLE_NAME);
         stormCluster.submitTopology(TEST_TOPOLOGY_NAME, new Config(), builder.createTopology());
     }
 
-    @Test
-    public void testKafkaHiveTopology() throws TException, JSONException {
+    public void validateHiveResults() throws ClassNotFoundException, SQLException {
+        System.out.println("HIVE: VALIDATING");
+        // Load the Hive JDBC driver
+        System.out.println("HIVE: Loading the Hive JDBC Driver");
+        Class.forName("org.apache.hive.jdbc.HiveDriver");
 
+        Connection con = DriverManager.getConnection("jdbc:hive2://localhost:" + hiveLocalServer2.getHiveServerThriftPort() + "/" + HIVE_DB_NAME, "user", "pass");
+
+        String selectStmt = "SELECT * FROM " + HIVE_TABLE_NAME;
+        Statement stmt = con.createStatement();
+
+        System.out.println("HIVE: Running Select Statement: " + selectStmt);
+        ResultSet resultSet = stmt.executeQuery(selectStmt);
+        while (resultSet.next()) {
+            ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
+            for (int i = 1; i <= resultSetMetaData.getColumnCount(); i++) {
+                System.out.print(resultSet.getString(i) + "\t");
+            }
+            System.out.println();
+        }
+    }
+
+    public void validateHdfsResults() throws IOException {
+        System.out.println("HDFS: VALIDATING");
+        FileSystem hdfsFsHandle = hdfsCluster.getHdfsFileSystemHandle();
+        RemoteIterator<LocatedFileStatus> listFiles = hdfsFsHandle.listFiles(new Path("/tmp/kafka_data"), true);
+        while (listFiles.hasNext()) {
+            LocatedFileStatus file = listFiles.next();
+
+            System.out.println("HDFS READ: Found File: " + file);
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(hdfsFsHandle.open(file.getPath())));
+            String line = br.readLine();
+            while (line != null) {
+                System.out.println("HDFS READ: Found Line: " + line);
+                line = br.readLine();
+            }
+        }
+        hdfsFsHandle.close();
+    }
+
+
+    @Test
+    public void testKafkaHiveHdfsTopology() throws TException, JSONException, ClassNotFoundException, SQLException, IOException {
+
+        // Create the Hive table, produce test messages to Kafka, start the kafka-hive-hdfs Storm topology
+        // Sleep 10 seconds to let processing complete
         createTable();
         produceMessages();
-        runStormKafkaHiveTopology();
+        runStormKafkaHiveHdfsTopology();
+        try {
+            Thread.sleep(10000L);
+        } catch (InterruptedException e) {
+            System.exit(1);
+        }
 
+        // To ensure transactions and files are closed, stop storm
+        stormCluster.stop(TEST_TOPOLOGY_NAME);
+        try {
+            Thread.sleep(10000L);
+        } catch (InterruptedException e) {
+            System.exit(1);
+        }
+
+        // Validate Hive table is populated
+        validateHiveResults();
+        try {
+            Thread.sleep(10000L);
+        } catch (InterruptedException e) {
+            System.exit(1);
+        }
+
+        // Validate the HDFS files exist
+        validateHdfsResults();
         try {
             Thread.sleep(10000L);
         } catch (InterruptedException e) {
