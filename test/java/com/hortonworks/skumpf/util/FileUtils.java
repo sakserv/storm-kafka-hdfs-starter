@@ -7,18 +7,23 @@ import java.io.File;
  */
 public class FileUtils {
 
-    public static void deleteFolder(File folder) {
-        File[] files = folder.listFiles();
+    public static void deleteFolder(String directory) {
+        File directoryToClean = new File(directory);
+        String directoryAbsPath = directoryToClean.getAbsolutePath();
+
+        System.out.println("FILEUTILS: Deleting contents of directory: " + directoryAbsPath);
+
+        File[] files = directoryToClean.listFiles();
         if(files!=null) { //some JVMs return null for empty dirs
             for(File f: files) {
                 if(f.isDirectory()) {
-                    System.out.println("KAFKA: Deleting " + f.getAbsolutePath());
-                    deleteFolder(f);
+                    deleteFolder(f.getAbsolutePath());
                 } else {
+                    System.out.println("FILEUTILS: Deleting file: " + f.getAbsolutePath());
                     f.delete();
                 }
             }
         }
-        folder.delete();
+        directoryToClean.delete();
     }
 }

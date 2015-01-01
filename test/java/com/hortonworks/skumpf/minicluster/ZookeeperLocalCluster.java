@@ -31,24 +31,22 @@ public class ZookeeperLocalCluster implements MiniCluster {
     }
 
     public void start() {
-        System.out.println("ZOOKEEPER: Starting Zookeeper Instance On Port " + zkPort);
+        System.out.println("ZOOKEEPER: Starting Zookeeper on port: " + zkPort);
         try {
             zkTestServer = new TestingServer(zkPort);
         } catch(Exception e) {
             System.out.println("ERROR: Failed to start Zookeeper");
             e.getStackTrace();
         }
-        System.out.println("ZOOKEEPER: Zookeeper Instance " + getZkConnectionString() + " Successfully Started");
     }
 
     public void stop()  {
-        System.out.println("ZOOKEEPER: Stopping Zookeeper Instance " + getZkConnectionString());
+        System.out.println("ZOOKEEPER: Stopping Zookeeper on port: " + zkPort);
         try {
             zkTestServer.stop();
         } catch(IOException e) {
             e.printStackTrace();
         }
-        System.out.println("ZOOKEEPER: Zookeeper Instance " + getZkConnectionString() + " Successfully Stopped");
     }
 
     public String getZkConnectionString() {

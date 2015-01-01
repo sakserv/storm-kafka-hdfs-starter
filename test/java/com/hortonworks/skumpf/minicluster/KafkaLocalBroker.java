@@ -94,7 +94,7 @@ public class KafkaLocalBroker implements MiniCluster {
         //delete old Kafka topic files
         File delLogDir = new File(logDir + "/" + topic + "-0");
         if (delLogDir.exists()){
-            FileUtils.deleteFolder(delLogDir);
+            FileUtils.deleteFolder(delLogDir.getAbsolutePath());
         }
     }
 }
