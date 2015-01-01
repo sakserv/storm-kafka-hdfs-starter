@@ -110,11 +110,11 @@ public class KafkaHiveHdfsTopologyTest {
         kafkaCluster.stop();
         kafkaCluster.deleteOldTopics();
 
-        // Stop HiveServer2
-        hiveLocalServer2.stop();
-
         // Stop HiveMetaStore
         hiveLocalMetaStore.stop();
+
+        // Stop HiveServer2
+        hiveLocalServer2.stop(true);
 
         // Stop HDFS
         hdfsCluster.stop();
