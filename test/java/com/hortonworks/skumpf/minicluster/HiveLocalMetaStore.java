@@ -12,8 +12,12 @@ import java.security.Permission;
  */
 public class HiveLocalMetaStore implements MiniCluster {
 
+    private static final int DEFAULT_METASTORE_PORT = 20102;
+    private static final String DEFAULT_DERBY_DB_PATH = "metastore_db";
+
     private static int msPort;
-    private static HiveConf hiveConf = new HiveConf();
+    private static String derbyDbPath;
+    private static HiveConf hiveConf;
     private static SecurityManager securityManager;
     private Thread t;
 
@@ -49,22 +53,24 @@ public class HiveLocalMetaStore implements MiniCluster {
     }
 
     public HiveLocalMetaStore() {
-        this(20102);
+        this(DEFAULT_METASTORE_PORT, DEFAULT_DERBY_DB_PATH);
     }
 
-    public HiveLocalMetaStore(int msPort) {
+    public HiveLocalMetaStore(int msPort, String derbyDbPath) {
         this.msPort = msPort;
-        configure(msPort);
+        this.derbyDbPath = derbyDbPath;
+        configure(msPort, derbyDbPath);
     }
 
     public void configure() {
+        hiveConf = new HiveConf();
         securityManager = System.getSecurityManager();
         System.setSecurityManager(new NoExitSecurityManager());
         hiveConf.set("hive.root.logger", "DEBUG,console");
         hiveConf.set(HiveConf.ConfVars.HIVE_TXN_MANAGER.varname, "org.apache.hadoop.hive.ql.lockmgr.DbTxnManager");
         hiveConf.set(HiveConf.ConfVars.HIVE_COMPACTOR_INITIATOR_ON.varname, "true");
         hiveConf.set(HiveConf.ConfVars.HIVE_COMPACTOR_WORKER_THREADS.varname, "5");
-        hiveConf.set(HiveConf.ConfVars.METASTORECONNECTURLKEY.varname, "jdbc:derby:;databaseName=metastore_db;create=true");
+        hiveConf.set(HiveConf.ConfVars.METASTORECONNECTURLKEY.varname, "jdbc:derby:;databaseName=" + DEFAULT_DERBY_DB_PATH + ";create=true");
         hiveConf.set(HiveConf.ConfVars.METASTOREWAREHOUSE.varname, "/tmp/warehouse_dir");
         hiveConf.set(HiveConf.ConfVars.HIVE_SUPPORT_CONCURRENCY.varname, "false");
         hiveConf.setIntVar(HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES, 3);
@@ -77,10 +83,11 @@ public class HiveLocalMetaStore implements MiniCluster {
         System.setProperty(HiveConf.ConfVars.POSTEXECHOOKS.varname, " ");
     }
 
-    public void configure(int msPort) {
+    public void configure(int msPort, String derbyDbPath) {
         configure();
         hiveConf.setVar(HiveConf.ConfVars.METASTOREURIS, "thrift://localhost:"
                 + msPort);
+        hiveConf.set(HiveConf.ConfVars.METASTORECONNECTURLKEY.varname, "jdbc:derby:;databaseName=" + derbyDbPath + ";create=true");
     }
 
     public void stop() {

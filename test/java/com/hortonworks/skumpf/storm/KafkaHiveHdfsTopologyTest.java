@@ -86,7 +86,7 @@ public class KafkaHiveHdfsTopologyTest {
         hiveLocalMetaStore = new HiveLocalMetaStore();
         hiveLocalMetaStore.start();
 
-        hiveLocalServer2 = new HiveLocalServer2(hiveLocalMetaStore.getMetaStoreUri());
+        hiveLocalServer2 = new HiveLocalServer2();
         hiveLocalServer2.start();
 
         // Start Kafka
