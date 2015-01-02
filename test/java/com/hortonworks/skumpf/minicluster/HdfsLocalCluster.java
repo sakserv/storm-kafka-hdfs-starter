@@ -14,7 +14,7 @@ public class HdfsLocalCluster implements MiniCluster {
     private static MiniDFSCluster.Builder clusterBuilder;
     private static MiniDFSCluster cluster;
     private static Configuration conf = new Configuration();
-    private static final String DEFAULT_LOG_DIR = "/tmp/embedded/hdfs/";
+    private static final String DEFAULT_LOG_DIR = "embedded_hdfs";
 
     public HdfsLocalCluster() {
         configure();

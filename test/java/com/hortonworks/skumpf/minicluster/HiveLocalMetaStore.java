@@ -14,6 +14,7 @@ public class HiveLocalMetaStore implements MiniCluster {
 
     private static final int DEFAULT_METASTORE_PORT = 20102;
     private static final String DEFAULT_DERBY_DB_PATH = "metastore_db";
+    private static final String DEFAULT_HIVE_SCRATCH_DIR = "hive_scratch_dir";
 
     private static int msPort;
     private static String derbyDbPath;
@@ -67,11 +68,12 @@ public class HiveLocalMetaStore implements MiniCluster {
         securityManager = System.getSecurityManager();
         System.setSecurityManager(new NoExitSecurityManager());
         hiveConf.set("hive.root.logger", "DEBUG,console");
+        hiveConf.set(HiveConf.ConfVars.SCRATCHDIR.varname, DEFAULT_HIVE_SCRATCH_DIR);
         hiveConf.set(HiveConf.ConfVars.HIVE_TXN_MANAGER.varname, "org.apache.hadoop.hive.ql.lockmgr.DbTxnManager");
         hiveConf.set(HiveConf.ConfVars.HIVE_COMPACTOR_INITIATOR_ON.varname, "true");
         hiveConf.set(HiveConf.ConfVars.HIVE_COMPACTOR_WORKER_THREADS.varname, "5");
         hiveConf.set(HiveConf.ConfVars.METASTORECONNECTURLKEY.varname, "jdbc:derby:;databaseName=" + DEFAULT_DERBY_DB_PATH + ";create=true");
-        hiveConf.set(HiveConf.ConfVars.METASTOREWAREHOUSE.varname, "/tmp/warehouse_dir");
+        hiveConf.set(HiveConf.ConfVars.METASTOREWAREHOUSE.varname, "warehouse_dir");
         hiveConf.set(HiveConf.ConfVars.HIVE_SUPPORT_CONCURRENCY.varname, "false");
         hiveConf.setIntVar(HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES, 3);
         hiveConf.set(HiveConf.ConfVars.PREEXECHOOKS.varname, "");

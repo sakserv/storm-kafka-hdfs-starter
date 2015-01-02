@@ -35,7 +35,7 @@ import java.util.*;
 public class KafkaHiveHdfsTopologyTest {
 
     // Kafka static
-    private static final String DEFAULT_LOG_DIR = "/tmp/embedded/kafka/";
+    private static final String DEFAULT_LOG_DIR = "embedded_kafka";
     private static final String TEST_TOPIC = "test-topic";
     private static final Integer KAFKA_PORT = 9092;
     private static final String LOCALHOST_BROKER = "localhost:" + KAFKA_PORT.toString();

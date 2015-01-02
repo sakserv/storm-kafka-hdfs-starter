@@ -16,7 +16,7 @@ public class KafkaLocalBroker implements MiniCluster {
 
     //location of kafka logging file:
     public static final String DEFAULT_TEST_TOPIC = "test-topic";
-    public static final String DEFAULT_LOG_DIR = "/tmp/embedded/kafka/";
+    public static final String DEFAULT_LOG_DIR = "embedded_kafka";
     public static final int DEFAULT_PORT = 9092;
     public static final int DEFAULT_BROKER_ID = 1;
     public static final String DEFAULT_ZK_CONNECTION_STRING = "localhost:2181";
@@ -81,7 +81,7 @@ public class KafkaLocalBroker implements MiniCluster {
 
         if (cleanUp) {
             System.out.println("KAFKA: Deleting Old Topics");
-            deleteOldTopics();
+            deleteOldTopics(logDir);
         }
     }
 
@@ -93,9 +93,9 @@ public class KafkaLocalBroker implements MiniCluster {
         return port;
     }
 
-    public void deleteOldTopics() {
+    public void deleteOldTopics(String dir) {
         //delete old Kafka topic files
-        File delLogDir = new File(logDir + "/" + topic + "-0");
+        File delLogDir = new File(dir);
         if (delLogDir.exists()){
             FileUtils.deleteFolder(delLogDir.getAbsolutePath());
         }
