@@ -5,6 +5,7 @@ import org.apache.hadoop.hive.metastore.HiveMetaStore;
 import org.apache.hadoop.hive.metastore.txn.TxnDbUtil;
 import org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge;
 
+import java.io.File;
 import java.security.Permission;
 
 /**
@@ -73,7 +74,7 @@ public class HiveLocalMetaStore implements MiniCluster {
         hiveConf.set(HiveConf.ConfVars.HIVE_COMPACTOR_INITIATOR_ON.varname, "true");
         hiveConf.set(HiveConf.ConfVars.HIVE_COMPACTOR_WORKER_THREADS.varname, "5");
         hiveConf.set(HiveConf.ConfVars.METASTORECONNECTURLKEY.varname, "jdbc:derby:;databaseName=" + DEFAULT_DERBY_DB_PATH + ";create=true");
-        hiveConf.set(HiveConf.ConfVars.METASTOREWAREHOUSE.varname, "warehouse_dir");
+        hiveConf.set(HiveConf.ConfVars.METASTOREWAREHOUSE.varname, new File("warehouse_dir").getAbsolutePath());
         hiveConf.set(HiveConf.ConfVars.HIVE_SUPPORT_CONCURRENCY.varname, "false");
         hiveConf.setIntVar(HiveConf.ConfVars.METASTORETHRIFTCONNECTIONRETRIES, 3);
         hiveConf.set(HiveConf.ConfVars.PREEXECHOOKS.varname, "");
