@@ -46,7 +46,7 @@ public class KafkaLocalBrokerTest {
     @After
     public void tearDown() {
 
-        kafkaLocalBroker.stop();
+        kafkaLocalBroker.stop(true);
         zkCluster.stop();
     }
 

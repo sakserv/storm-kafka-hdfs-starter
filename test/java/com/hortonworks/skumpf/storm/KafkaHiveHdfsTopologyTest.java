@@ -107,8 +107,7 @@ public class KafkaHiveHdfsTopologyTest {
         } catch(IllegalStateException e) { }
 
         // Stop Kafka
-        kafkaCluster.stop();
-        kafkaCluster.deleteOldTopics();
+        kafkaCluster.stop(true);
 
         // Stop HiveMetaStore
         hiveLocalMetaStore.stop();

@@ -51,10 +51,10 @@ public class KafkaLocalBroker implements MiniCluster {
     }
 
     public void configure() {
-        configure(topic, logDir, port, brokerId, zkConnString);
+        configure(logDir, port, brokerId, zkConnString);
     }
 
-    public void configure(String topic, String logDir, int port, int brokerId, String zkConnString) {
+    public void configure(String logDir, int port, int brokerId, String zkConnString) {
         Properties properties = new Properties();
         properties.put("port", port+"");
         properties.put("broker.id", brokerId+"");
@@ -67,19 +67,22 @@ public class KafkaLocalBroker implements MiniCluster {
 
     public void start() {
         server = new KafkaServer(conf, new LocalSystemTime());
-        System.out.println("KAFKA: Starting Embedded Kafka On Port " + server.config().port());
+        System.out.println("KAFKA: Starting Kafka on port: " + port);
         server.startup();
-        System.out.println("KAFKA: Embedded Kafka Successfully Started On Port " + server.config().port());
     }
 
-    public void stop(){
-        System.out.println("KAFKA: Stopping Embedded Kafka");
-        server.shutdown();
-        System.out.println("KAFKA: Embedded Kafka Successfully Stopped");
+    public void stop() {
+        stop(false);
+    }
 
-        System.out.println("KAFKA: Deleting Old Topics");
-        deleteOldTopics();
-        System.out.println("KAFKA: Successfully Deleted Old Topics");
+    public void stop(boolean cleanUp){
+        System.out.println("KAFKA: Stopping Kafka on port: " + port);
+        server.shutdown();
+
+        if (cleanUp) {
+            System.out.println("KAFKA: Deleting Old Topics");
+            deleteOldTopics();
+        }
     }
 
     public void dumpConfig() {
