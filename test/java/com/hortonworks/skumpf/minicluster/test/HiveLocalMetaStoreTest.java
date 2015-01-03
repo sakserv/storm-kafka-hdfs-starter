@@ -12,6 +12,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,7 +54,7 @@ public class HiveLocalMetaStoreTest {
             cols.add(new FieldSchema("msg", Constants.STRING_TYPE_NAME, ""));
 
             // Values for the StorageDescriptor
-            String location = "/tmp/test_table";
+            String location = new File("test_table").getAbsolutePath();
             String inputFormat = "org.apache.hadoop.hive.ql.io.orc.OrcInputFormat";
             String outputFormat = "org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat";
             int numBuckets = 16;

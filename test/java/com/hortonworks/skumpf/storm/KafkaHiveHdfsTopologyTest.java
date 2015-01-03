@@ -24,6 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.sql.*;
@@ -133,7 +134,7 @@ public class KafkaHiveHdfsTopologyTest {
         cols.add(new FieldSchema("msg", Constants.STRING_TYPE_NAME, ""));
 
         // Values for the StorageDescriptor
-        String location = "/tmp/test_table";
+        String location = new File("test_table").getAbsolutePath();
         String inputFormat = "org.apache.hadoop.hive.ql.io.orc.OrcInputFormat";
         String outputFormat = "org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat";
         int numBuckets = 16;
@@ -164,7 +165,7 @@ public class KafkaHiveHdfsTopologyTest {
         tbl.setParameters(new HashMap<String, String>());
         tbl.setViewOriginalText("");
         tbl.setViewExpandedText("");
-        tbl.setTableType(TableType.EXTERNAL_TABLE.name());
+        tbl.setTableType(TableType.MANAGED_TABLE.name());
         List<FieldSchema> partitions = new ArrayList<FieldSchema>();
         partitions.add(new FieldSchema("dt", Constants.STRING_TYPE_NAME, ""));
         tbl.setPartitionKeys(partitions);
