@@ -2,6 +2,7 @@ package com.hortonworks.skumpf.minicluster.test;
 
 import com.hortonworks.skumpf.minicluster.HiveLocalMetaStore;
 import com.hortonworks.skumpf.minicluster.HiveLocalServer2;
+import com.hortonworks.skumpf.util.FileUtils;
 import org.apache.hadoop.hive.metastore.HiveMetaStoreClient;
 import org.apache.hadoop.hive.metastore.TableType;
 import org.apache.hadoop.hive.metastore.api.*;
@@ -25,7 +26,8 @@ import java.util.Map;
 public class HiveLocalMetaStoreTest {
 
     private static final String HIVE_DB_NAME = "default";
-    private static final String HIVE_TABLE_NAME = "testtable";
+    private static final String HIVE_TABLE_NAME = "test_table";
+    private static final String HIVE_TABLE_PATH = new File(HIVE_TABLE_NAME).getAbsolutePath();
     HiveLocalMetaStore hiveServer;
 
     @Before
@@ -36,7 +38,8 @@ public class HiveLocalMetaStoreTest {
 
     @After
     public void tearDown() {
-        hiveServer.stop();
+        hiveServer.stop(true);
+        FileUtils.deleteFolder(HIVE_TABLE_PATH);
     }
 
     @Test
@@ -54,7 +57,7 @@ public class HiveLocalMetaStoreTest {
             cols.add(new FieldSchema("msg", Constants.STRING_TYPE_NAME, ""));
 
             // Values for the StorageDescriptor
-            String location = new File("test_table").getAbsolutePath();
+            String location = HIVE_TABLE_PATH;
             String inputFormat = "org.apache.hadoop.hive.ql.io.orc.OrcInputFormat";
             String outputFormat = "org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat";
             int numBuckets = 16;

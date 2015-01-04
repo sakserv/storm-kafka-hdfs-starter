@@ -1,5 +1,6 @@
 package com.hortonworks.skumpf.minicluster;
 
+import com.hortonworks.skumpf.util.FileUtils;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.metastore.HiveMetaStore;
 import org.apache.hadoop.hive.metastore.txn.TxnDbUtil;
@@ -96,6 +97,17 @@ public class HiveLocalMetaStore implements MiniCluster {
     public void stop() {
         cleanDb();
         t.interrupt();
+    }
+
+    public void stop(boolean cleanUp) {
+        stop();
+        if (cleanUp) {
+            cleanUp();
+        }
+    }
+
+    private void cleanUp() {
+        FileUtils.deleteFolder(derbyDbPath);
     }
 
     public void start() {

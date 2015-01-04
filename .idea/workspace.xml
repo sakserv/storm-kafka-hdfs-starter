@@ -2,10 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="0cc38185-21a7-4140-aa62-483d610764d4" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/HiveLocalMetaStore.java" afterPath="$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/HiveLocalMetaStore.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/test/HiveLocalMetaStoreTest.java" afterPath="$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/test/HiveLocalMetaStoreTest.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/java/com/hortonworks/skumpf/storm/KafkaHiveHdfsTopologyTest.java" afterPath="$PROJECT_DIR$/test/java/com/hortonworks/skumpf/storm/KafkaHiveHdfsTopologyTest.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/test/KafkaLocalBrokerTest.java" afterPath="$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/test/KafkaLocalBrokerTest.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="storm-kafka-hdfs-starter.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -81,10 +79,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="KafkaLocalBrokerTest.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="KafkaLocalBrokerTest.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/test/KafkaLocalBrokerTest.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="5.285714" vertical-offset="1109" max-vertical-offset="3495">
+            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="3495">
               <caret line="239" column="0" selection-start-line="239" selection-start-column="0" selection-end-line="239" selection-end-column="0" />
               <folding />
             </state>
@@ -94,20 +92,22 @@
       <file leaf-file-name="HiveLocalMetaStore.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/HiveLocalMetaStore.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="240" max-vertical-offset="2160">
-              <caret line="81" column="72" selection-start-line="81" selection-start-column="72" selection-end-line="81" selection-end-column="72" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="1365" max-vertical-offset="2340">
+              <caret line="109" column="44" selection-start-line="109" selection-start-column="44" selection-end-line="109" selection-end-column="44" />
               <folding>
                 <element signature="imports" expanded="true" />
+                <element signature="e#3959#3960#0" expanded="true" />
+                <element signature="e#4010#4011#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="HiveLocalMetaStoreTest.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="HiveLocalMetaStoreTest.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/test/HiveLocalMetaStoreTest.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="540" max-vertical-offset="1425">
-              <caret line="56" column="70" selection-start-line="56" selection-start-column="70" selection-end-line="56" selection-end-column="70" />
+            <state vertical-scroll-proportion="0.81280786" vertical-offset="0" max-vertical-offset="1485">
+              <caret line="40" column="28" selection-start-line="40" selection-start-column="28" selection-end-line="40" selection-end-column="28" />
               <folding />
             </state>
           </provider>
@@ -126,8 +126,8 @@
       <file leaf-file-name="HiveLocalServer2.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/HiveLocalServer2.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="45" max-vertical-offset="1590">
-              <caret line="59" column="10" selection-start-line="59" selection-start-column="8" selection-end-line="59" selection-end-column="75" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="1035" max-vertical-offset="1590">
+              <caret line="79" column="8" selection-start-line="79" selection-start-column="0" selection-end-line="89" selection-end-column="5" />
               <folding />
             </state>
           </provider>
@@ -178,11 +178,11 @@
         <option value="$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/HiveLocalServer2.java" />
         <option value="$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/HdfsLocalCluster.java" />
         <option value="$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/KafkaLocalBroker.java" />
-        <option value="$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/HiveLocalMetaStore.java" />
-        <option value="$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/test/HiveLocalMetaStoreTest.java" />
         <option value="$PROJECT_DIR$/test/java/com/hortonworks/skumpf/storm/KafkaHiveHdfsTopologyTest.java" />
         <option value="$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/test/KafkaLocalBrokerSimpleConsumerTest.java" />
         <option value="$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/test/KafkaLocalBrokerTest.java" />
+        <option value="$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/HiveLocalMetaStore.java" />
+        <option value="$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/test/HiveLocalMetaStoreTest.java" />
       </list>
     </option>
   </component>
@@ -286,35 +286,7 @@
       <recent name="$PROJECT_DIR$/src" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.KafkaLocalBrokerTest">
-    <configuration default="false" name="KafkaHiveHdfsTopologyTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea">
-        <pattern>
-          <option name="PATTERN" value="com.hortonworks.skumpf.storm.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <module name="storm-kafka-hdfs-starter" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" value="" />
-      <option name="PACKAGE_NAME" value="com.hortonworks.skumpf.storm" />
-      <option name="MAIN_CLASS_NAME" value="com.hortonworks.skumpf.storm.KafkaHiveHdfsTopologyTest" />
-      <option name="METHOD_NAME" value="" />
-      <option name="TEST_OBJECT" value="class" />
-      <option name="VM_PARAMETERS" value="-ea -Xms4g -Xmx4g -XX:MaxPermSize=1024M" />
-      <option name="PARAMETERS" value="" />
-      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
-      <option name="ENV_VARIABLES" />
-      <option name="PASS_PARENT_ENVS" value="true" />
-      <option name="TEST_SEARCH_SCOPE">
-        <value defaultName="moduleWithDependencies" />
-      </option>
-      <envs />
-      <patterns />
-      <RunnerSettings RunnerId="Run" />
-      <ConfigurationWrapper RunnerId="Run" />
-      <method />
-    </configuration>
+  <component name="RunManager" selected="JUnit.HiveLocalMetaStoreTest">
     <configuration default="false" name="KafkaLocalBrokerTest.testKafkaLocalBroker" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea">
         <pattern>
@@ -411,6 +383,34 @@
       <option name="ALTERNATIVE_JRE_PATH" value="" />
       <option name="PACKAGE_NAME" value="com.hortonworks.skumpf.minicluster.test" />
       <option name="MAIN_CLASS_NAME" value="com.hortonworks.skumpf.minicluster.test.KafkaLocalBrokerTest" />
+      <option name="METHOD_NAME" value="" />
+      <option name="TEST_OBJECT" value="class" />
+      <option name="VM_PARAMETERS" value="-ea -Xms4g -Xmx4g -XX:MaxPermSize=1024M" />
+      <option name="PARAMETERS" value="" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
+      <option name="ENV_VARIABLES" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <option name="TEST_SEARCH_SCOPE">
+        <value defaultName="moduleWithDependencies" />
+      </option>
+      <envs />
+      <patterns />
+      <RunnerSettings RunnerId="Run" />
+      <ConfigurationWrapper RunnerId="Run" />
+      <method />
+    </configuration>
+    <configuration default="false" name="HiveLocalMetaStoreTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea">
+        <pattern>
+          <option name="PATTERN" value="com.hortonworks.skumpf.minicluster.test.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <module name="storm-kafka-hdfs-starter" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" value="" />
+      <option name="PACKAGE_NAME" value="com.hortonworks.skumpf.minicluster.test" />
+      <option name="MAIN_CLASS_NAME" value="com.hortonworks.skumpf.minicluster.test.HiveLocalMetaStoreTest" />
       <option name="METHOD_NAME" value="" />
       <option name="TEST_OBJECT" value="class" />
       <option name="VM_PARAMETERS" value="-ea -Xms4g -Xmx4g -XX:MaxPermSize=1024M" />
@@ -651,19 +651,19 @@
       <method />
     </configuration>
     <list size="5">
-      <item index="0" class="java.lang.String" itemvalue="JUnit.KafkaHiveHdfsTopologyTest" />
-      <item index="1" class="java.lang.String" itemvalue="JUnit.KafkaLocalBrokerTest.testKafkaLocalBroker" />
-      <item index="2" class="java.lang.String" itemvalue="JUnit.KafkaLocalBrokerSimpleConsumerTest" />
-      <item index="3" class="java.lang.String" itemvalue="JUnit.KafkaLocalBrokerSimpleConsumerTest.testKafkaLocalBroker" />
-      <item index="4" class="java.lang.String" itemvalue="JUnit.KafkaLocalBrokerTest" />
+      <item index="0" class="java.lang.String" itemvalue="JUnit.KafkaLocalBrokerTest.testKafkaLocalBroker" />
+      <item index="1" class="java.lang.String" itemvalue="JUnit.KafkaLocalBrokerSimpleConsumerTest" />
+      <item index="2" class="java.lang.String" itemvalue="JUnit.KafkaLocalBrokerSimpleConsumerTest.testKafkaLocalBroker" />
+      <item index="3" class="java.lang.String" itemvalue="JUnit.KafkaLocalBrokerTest" />
+      <item index="4" class="java.lang.String" itemvalue="JUnit.HiveLocalMetaStoreTest" />
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="JUnit.KafkaLocalBrokerTest" />
-        <item index="1" class="java.lang.String" itemvalue="JUnit.KafkaLocalBrokerSimpleConsumerTest.testKafkaLocalBroker" />
-        <item index="2" class="java.lang.String" itemvalue="JUnit.KafkaLocalBrokerSimpleConsumerTest" />
-        <item index="3" class="java.lang.String" itemvalue="JUnit.KafkaLocalBrokerTest.testKafkaLocalBroker" />
-        <item index="4" class="java.lang.String" itemvalue="JUnit.KafkaHiveHdfsTopologyTest" />
+        <item index="0" class="java.lang.String" itemvalue="JUnit.HiveLocalMetaStoreTest" />
+        <item index="1" class="java.lang.String" itemvalue="JUnit.KafkaLocalBrokerTest" />
+        <item index="2" class="java.lang.String" itemvalue="JUnit.KafkaLocalBrokerSimpleConsumerTest.testKafkaLocalBroker" />
+        <item index="3" class="java.lang.String" itemvalue="JUnit.KafkaLocalBrokerSimpleConsumerTest" />
+        <item index="4" class="java.lang.String" itemvalue="JUnit.KafkaLocalBrokerTest.testKafkaLocalBroker" />
       </list>
     </recent_temporary>
     <configuration name="&lt;template&gt;" type="WebApp" default="true" selected="false">
@@ -1162,14 +1162,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/HiveLocalServer2.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="495" max-vertical-offset="1590">
-          <caret line="59" column="10" selection-start-line="59" selection-start-column="8" selection-end-line="59" selection-end-column="75" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/java/com/hortonworks/skumpf/storm/KafkaHdfsTopology.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="675" max-vertical-offset="1545">
@@ -1199,24 +1191,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/test/HiveLocalMetaStoreTest.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="360" max-vertical-offset="1425">
-          <caret line="56" column="70" selection-start-line="56" selection-start-column="70" selection-end-line="56" selection-end-column="70" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/HiveLocalMetaStore.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="915" max-vertical-offset="2160">
-          <caret line="81" column="72" selection-start-line="81" selection-start-column="72" selection-end-line="81" selection-end-column="72" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/KafkaLocalBroker.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="473" max-vertical-offset="1470">
@@ -1232,8 +1206,36 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/test/KafkaLocalBrokerTest.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="5.285714" vertical-offset="1109" max-vertical-offset="3495">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="3495">
           <caret line="239" column="0" selection-start-line="239" selection-start-column="0" selection-end-line="239" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/HiveLocalServer2.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="1035" max-vertical-offset="1590">
+          <caret line="79" column="8" selection-start-line="79" selection-start-column="0" selection-end-line="89" selection-end-column="5" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/HiveLocalMetaStore.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="1365" max-vertical-offset="2340">
+          <caret line="109" column="44" selection-start-line="109" selection-start-column="44" selection-end-line="109" selection-end-column="44" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#3959#3960#0" expanded="true" />
+            <element signature="e#4010#4011#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/java/com/hortonworks/skumpf/minicluster/test/HiveLocalMetaStoreTest.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.81280786" vertical-offset="0" max-vertical-offset="1485">
+          <caret line="40" column="28" selection-start-line="40" selection-start-column="28" selection-end-line="40" selection-end-column="28" />
           <folding />
         </state>
       </provider>
