@@ -20,7 +20,7 @@ public class ZookeeperLocalClusterTest {
 
     @After
     public void tearDown() {
-        zkCluster.stop();
+        zkCluster.stop(true);
     }
 
     @Test

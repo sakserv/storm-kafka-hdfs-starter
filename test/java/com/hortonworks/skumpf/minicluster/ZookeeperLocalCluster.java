@@ -1,8 +1,11 @@
 package com.hortonworks.skumpf.minicluster;
 
+import com.hortonworks.skumpf.util.FileUtils;
 import org.apache.commons.math.stat.descriptive.rank.Min;
 import org.apache.curator.test.TestingServer;
+import org.apache.hadoop.conf.Configuration;
 
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -10,30 +13,38 @@ import java.io.IOException;
  */
 public class ZookeeperLocalCluster implements MiniCluster {
 
+    private static final String DEFAULT_ZK_TEMP_DIR = "embedded_zk";
+    private static final int DEFAULT_ZK_PORT = 2181;
+
+    private String zkTempDir;
     private TestingServer zkTestServer;
     private int zkPort;
 
     public ZookeeperLocalCluster() {
+        zkPort = DEFAULT_ZK_PORT;
+        zkTempDir = DEFAULT_ZK_TEMP_DIR;
         configure();
     }
 
     public ZookeeperLocalCluster(int zkPort) {
-        configure(zkPort);
-    }
-
-    public void configure() {
-        zkPort = 2181;
-        configure(zkPort);
-    }
-
-    public void configure(int zkPort) {
         this.zkPort = zkPort;
+        zkTempDir = DEFAULT_ZK_TEMP_DIR;
+        configure();
     }
+
+    public ZookeeperLocalCluster(int zkPort, String zkTempDir) {
+        this.zkPort = zkPort;
+        this.zkTempDir = zkTempDir;
+        configure();
+    }
+
+    // Curator does not leverage a configuration object
+    public void configure() {}
 
     public void start() {
         System.out.println("ZOOKEEPER: Starting Zookeeper on port: " + zkPort);
         try {
-            zkTestServer = new TestingServer(zkPort);
+            zkTestServer = new TestingServer(zkPort, new File(zkTempDir));
         } catch(Exception e) {
             System.out.println("ERROR: Failed to start Zookeeper");
             e.getStackTrace();
@@ -47,6 +58,17 @@ public class ZookeeperLocalCluster implements MiniCluster {
         } catch(IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void stop(boolean cleanUp) {
+        stop();
+        if (cleanUp) {
+            cleanUp();
+        }
+    }
+
+    private void cleanUp() {
+        FileUtils.deleteFolder(zkTempDir);
     }
 
     public String getZkConnectionString() {
