@@ -131,7 +131,7 @@ public class KafkaHiveHdfsTopologyTest {
         FileUtils.deleteFolder(HIVE_TABLE_LOC);
 
         // Stop HDFS
-        hdfsCluster.stop();
+        hdfsCluster.stop(true);
 
         // Stop ZK
         zkCluster.stop(true);

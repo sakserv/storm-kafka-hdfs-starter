@@ -42,7 +42,7 @@
         <dependency>
             <groupId>com.github.sakserv</groupId>
             <artifactId>hadoop-mini-clusters</artifactId>
-            <version>0.0.6</version>
+            <version>0.0.7</version>
             <scope>test</scope>
         </dependency>
         <dependency>
