@@ -18,6 +18,7 @@ import backtype.storm.Config;
 import backtype.storm.topology.TopologyBuilder;
 import com.github.sakserv.datetime.GenerateRandomDay;
 import com.github.sakserv.minicluster.impl.*;
+import com.github.sakserv.minicluster.util.FileUtils;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
@@ -61,6 +62,7 @@ public class KafkaHiveHdfsTopologyTest {
     private static final String HIVE_TABLE_NAME = "test";
     private static final String[] HIVE_COLS = {"id", "msg"};
     private static final String[] HIVE_PARTITIONS = {"dt"};
+    private static final String HIVE_TABLE_LOC = new File("test_table").getAbsolutePath();
 
     // HDFS static
     private static final String HDFS_OUTPUT_DIR = "/tmp/kafka_data";
@@ -126,6 +128,7 @@ public class KafkaHiveHdfsTopologyTest {
 
         // Stop HiveServer2
         hiveLocalServer2.stop(true);
+        FileUtils.deleteFolder(HIVE_TABLE_LOC);
 
         // Stop HDFS
         hdfsCluster.stop();
@@ -145,7 +148,7 @@ public class KafkaHiveHdfsTopologyTest {
         cols.add(new FieldSchema("msg", Constants.STRING_TYPE_NAME, ""));
 
         // Values for the StorageDescriptor
-        String location = new File("test_table").getAbsolutePath();
+        String location = HIVE_TABLE_LOC;
         String inputFormat = "org.apache.hadoop.hive.ql.io.orc.OrcInputFormat";
         String outputFormat = "org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat";
         int numBuckets = 16;
@@ -223,7 +226,7 @@ public class KafkaHiveHdfsTopologyTest {
         TopologyBuilder builder = new TopologyBuilder();
         ConfigureKafkaSpout.configureKafkaSpout(builder, zkCluster.getZkConnectionString(), TEST_TOPIC, "-2");
         ConfigureHdfsBolt.configureHdfsBolt(builder, ",", HDFS_OUTPUT_DIR, hdfsCluster.getHdfsUriString());
-        ConfigureHiveBolt.configureHiveStreamingBolt(builder, HIVE_COLS, HIVE_PARTITIONS, hiveLocalMetaStore.getMetaStoreUri(), HIVE_DB_NAME, HIVE_TABLE_NAME);
+        //ConfigureHiveBolt.configureHiveStreamingBolt(builder, HIVE_COLS, HIVE_PARTITIONS, hiveLocalMetaStore.getMetaStoreUri(), HIVE_DB_NAME, HIVE_TABLE_NAME);
         stormCluster.submitTopology(TEST_TOPOLOGY_NAME, new Config(), builder.createTopology());
     }
 
