@@ -16,6 +16,7 @@ package com.github.sakserv.storm;
 
 import backtype.storm.spout.SchemeAsMultiScheme;
 import backtype.storm.topology.TopologyBuilder;
+import com.github.sakserv.storm.scheme.JsonScheme;
 import storm.kafka.KafkaSpout;
 import storm.kafka.SpoutConfig;
 import storm.kafka.StringScheme;
@@ -33,7 +34,7 @@ public class ConfigureKafkaSpout {
                 "/" + kafkaTopic, // Root path in Zookeeper for the spout to store consumer offsets
                 UUID.randomUUID().toString());  // ID for storing consumer offsets in Zookeeper
         //spoutConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
-        spoutConfig.scheme = new SchemeAsMultiScheme(new StringScheme());
+        spoutConfig.scheme = new SchemeAsMultiScheme(new JsonScheme());
 
         // Allow for passing in an offset time
         // startOffsetTime has a bug that ignores the special -2 value

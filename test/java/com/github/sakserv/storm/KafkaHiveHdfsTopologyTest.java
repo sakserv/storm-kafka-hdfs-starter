@@ -226,7 +226,7 @@ public class KafkaHiveHdfsTopologyTest {
         TopologyBuilder builder = new TopologyBuilder();
         ConfigureKafkaSpout.configureKafkaSpout(builder, zkCluster.getZkConnectionString(), TEST_TOPIC, "-2");
         ConfigureHdfsBolt.configureHdfsBolt(builder, ",", HDFS_OUTPUT_DIR, hdfsCluster.getHdfsUriString());
-        //ConfigureHiveBolt.configureHiveStreamingBolt(builder, HIVE_COLS, HIVE_PARTITIONS, hiveLocalMetaStore.getMetaStoreUri(), HIVE_DB_NAME, HIVE_TABLE_NAME);
+        ConfigureHiveBolt.configureHiveStreamingBolt(builder, HIVE_COLS, HIVE_PARTITIONS, hiveLocalMetaStore.getMetaStoreUri(), HIVE_DB_NAME, HIVE_TABLE_NAME);
         stormCluster.submitTopology(TEST_TOPOLOGY_NAME, new Config(), builder.createTopology());
     }
 
