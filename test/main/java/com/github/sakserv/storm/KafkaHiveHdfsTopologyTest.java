@@ -17,6 +17,7 @@ package com.github.sakserv.storm;
 import backtype.storm.Config;
 import backtype.storm.topology.TopologyBuilder;
 import com.github.sakserv.datetime.GenerateRandomDay;
+import com.github.sakserv.kafka.KafkaProducerTest;
 import com.github.sakserv.minicluster.impl.*;
 import com.github.sakserv.minicluster.util.FileUtils;
 import kafka.javaapi.producer.Producer;
@@ -57,13 +58,6 @@ public class KafkaHiveHdfsTopologyTest {
     // Storm static
     private static final String TEST_TOPOLOGY_NAME = "test";
 
-    // Hive static
-    private static final String HIVE_DB_NAME = "default";
-    private static final String HIVE_TABLE_NAME = "test";
-    private static final String[] HIVE_COLS = {"id", "msg"};
-    private static final String[] HIVE_PARTITIONS = {"dt"};
-    private static final String HIVE_TABLE_LOC = new File("test_table").getAbsolutePath();
-
     // HDFS static
     private static final String HDFS_OUTPUT_DIR = "/tmp/kafka_data";
 
@@ -79,12 +73,6 @@ public class KafkaHiveHdfsTopologyTest {
     // HDFS
     private HdfsLocalCluster hdfsCluster;
 
-    // Hive MetaStore
-    private HiveLocalMetaStore hiveLocalMetaStore;
-
-    // HiveServer2
-    private HiveLocalServer2 hiveLocalServer2;
-
     @Before
     public void setUp() {
 
@@ -95,13 +83,6 @@ public class KafkaHiveHdfsTopologyTest {
         // Start HDFS
         hdfsCluster = new HdfsLocalCluster();
         hdfsCluster.start();
-
-        // Start HiveMetaStore
-        hiveLocalMetaStore = new HiveLocalMetaStore();
-        hiveLocalMetaStore.start();
-
-        hiveLocalServer2 = new HiveLocalServer2();
-        hiveLocalServer2.start();
 
         // Start Kafka
         kafkaCluster = new KafkaLocalBroker(TEST_TOPIC, DEFAULT_LOG_DIR, KAFKA_PORT, BROKER_ID, zkCluster.getZkConnectionString());
@@ -123,13 +104,6 @@ public class KafkaHiveHdfsTopologyTest {
         // Stop Kafka
         kafkaCluster.stop(true);
 
-        // Stop HiveMetaStore
-        hiveLocalMetaStore.stop();
-
-        // Stop HiveServer2
-        hiveLocalServer2.stop(true);
-        FileUtils.deleteFolder(HIVE_TABLE_LOC);
-
         // Stop HDFS
         hdfsCluster.stop(true);
 
@@ -137,119 +111,12 @@ public class KafkaHiveHdfsTopologyTest {
         zkCluster.stop(true);
     }
 
-    public void createTable() throws TException {
-        HiveMetaStoreClient hiveClient = new HiveMetaStoreClient(hiveLocalMetaStore.getConf());
-
-        hiveClient.dropTable(HIVE_DB_NAME, HIVE_TABLE_NAME, true, true);
-
-        // Define the cols
-        List<FieldSchema> cols = new ArrayList<FieldSchema>();
-        cols.add(new FieldSchema("id", Constants.INT_TYPE_NAME, ""));
-        cols.add(new FieldSchema("msg", Constants.STRING_TYPE_NAME, ""));
-
-        // Values for the StorageDescriptor
-        String location = HIVE_TABLE_LOC;
-        String inputFormat = "org.apache.hadoop.hive.ql.io.orc.OrcInputFormat";
-        String outputFormat = "org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat";
-        int numBuckets = 16;
-        Map<String,String> orcProps = new HashMap<String, String>();
-        orcProps.put("orc.compress", "NONE");
-        SerDeInfo serDeInfo = new SerDeInfo(OrcSerde.class.getSimpleName(), OrcSerde.class.getName(), orcProps);
-        List<String> bucketCols = new ArrayList<String>();
-        bucketCols.add("id");
-
-        // Build the StorageDescriptor
-        StorageDescriptor sd = new StorageDescriptor();
-        sd.setCols(cols);
-        sd.setLocation(location);
-        sd.setInputFormat(inputFormat);
-        sd.setOutputFormat(outputFormat);
-        sd.setNumBuckets(numBuckets);
-        sd.setSerdeInfo(serDeInfo);
-        sd.setBucketCols(bucketCols);
-        sd.setSortCols(new ArrayList<Order>());
-        sd.setParameters(new HashMap<String, String>());
-
-        // Define the table
-        Table tbl = new Table();
-        tbl.setDbName(HIVE_DB_NAME);
-        tbl.setTableName(HIVE_TABLE_NAME);
-        tbl.setSd(sd);
-        tbl.setOwner(System.getProperty("user.name"));
-        tbl.setParameters(new HashMap<String, String>());
-        tbl.setViewOriginalText("");
-        tbl.setViewExpandedText("");
-        tbl.setTableType(TableType.MANAGED_TABLE.name());
-        List<FieldSchema> partitions = new ArrayList<FieldSchema>();
-        partitions.add(new FieldSchema("dt", Constants.STRING_TYPE_NAME, ""));
-        tbl.setPartitionKeys(partitions);
-
-        // Create the table
-        hiveClient.createTable(tbl);
-
-        // Describe the table
-        Table createdTable = hiveClient.getTable(HIVE_DB_NAME, HIVE_TABLE_NAME);
-        System.out.println("HIVE: Created Table: " + createdTable.toString());
-    }
-
-    public void produceMessages() throws JSONException {
-        // Add Producer properties and created the Producer
-        Properties props = new Properties();
-        props.put("metadata.broker.list", LOCALHOST_BROKER);
-        props.put("serializer.class", "kafka.serializer.StringEncoder");
-        ProducerConfig config = new ProducerConfig(props);
-        Producer<String, String> producer = new Producer<String, String>(config);
-
-        // Send 10 messages to the local kafka server:
-        System.out.println("KAFKA: Preparing To Send 50 Initial Messages");
-        for (int i=0; i<50; i++){
-
-            // Create the JSON object
-            JSONObject obj = new JSONObject();
-            obj.put("id", String.valueOf(i));
-            obj.put("msg", "test-message" + 1);
-            obj.put("dt", GenerateRandomDay.genRandomDay());
-            String payload = obj.toString();
-
-            KeyedMessage<String, String> data = new KeyedMessage<String, String>(TEST_TOPIC, null, payload);
-            producer.send(data);
-            System.out.println("Sent message: " + data.toString());
-        }
-        System.out.println("KAFKA: Initial Messages Sent");
-
-        // Stop the producer
-        producer.close();
-    }
-
     public void runStormKafkaHiveHdfsTopology() {
         System.out.println("STORM: Starting Topology: " + TEST_TOPOLOGY_NAME);
         TopologyBuilder builder = new TopologyBuilder();
         ConfigureKafkaSpout.configureKafkaSpout(builder, zkCluster.getZkConnectionString(), TEST_TOPIC, "-2");
         ConfigureHdfsBolt.configureHdfsBolt(builder, ",", HDFS_OUTPUT_DIR, hdfsCluster.getHdfsUriString());
-        ConfigureHiveBolt.configureHiveStreamingBolt(builder, HIVE_COLS, HIVE_PARTITIONS, hiveLocalMetaStore.getMetaStoreUri(), HIVE_DB_NAME, HIVE_TABLE_NAME);
         stormCluster.submitTopology(TEST_TOPOLOGY_NAME, new Config(), builder.createTopology());
-    }
-
-    public void validateHiveResults() throws ClassNotFoundException, SQLException {
-        System.out.println("HIVE: VALIDATING");
-        // Load the Hive JDBC driver
-        System.out.println("HIVE: Loading the Hive JDBC Driver");
-        Class.forName("org.apache.hive.jdbc.HiveDriver");
-
-        Connection con = DriverManager.getConnection("jdbc:hive2://localhost:" + hiveLocalServer2.getHiveServerThriftPort() + "/" + HIVE_DB_NAME, "user", "pass");
-
-        String selectStmt = "SELECT * FROM " + HIVE_TABLE_NAME;
-        Statement stmt = con.createStatement();
-
-        System.out.println("HIVE: Running Select Statement: " + selectStmt);
-        ResultSet resultSet = stmt.executeQuery(selectStmt);
-        while (resultSet.next()) {
-            ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
-            for (int i = 1; i <= resultSetMetaData.getColumnCount(); i++) {
-                System.out.print(resultSet.getString(i) + "\t");
-            }
-            System.out.println();
-        }
     }
 
     public void validateHdfsResults() throws IOException {
@@ -275,10 +142,9 @@ public class KafkaHiveHdfsTopologyTest {
     @Test
     public void testKafkaHiveHdfsTopology() throws TException, JSONException, ClassNotFoundException, SQLException, IOException {
 
-        // Create the Hive table, produce test messages to Kafka, start the kafka-hive-hdfs Storm topology
+        // Produce test messages to Kafka, start the kafka-hive-hdfs Storm topology
         // Sleep 10 seconds to let processing complete
-        createTable();
-        produceMessages();
+        KafkaProducerTest.produceMessages(LOCALHOST_BROKER, TEST_TOPIC, 50);
         runStormKafkaHiveHdfsTopology();
         try {
             Thread.sleep(10000L);
@@ -288,14 +154,6 @@ public class KafkaHiveHdfsTopologyTest {
 
         // To ensure transactions and files are closed, stop storm
         stormCluster.stop(TEST_TOPOLOGY_NAME);
-        try {
-            Thread.sleep(10000L);
-        } catch (InterruptedException e) {
-            System.exit(1);
-        }
-
-        // Validate Hive table is populated
-        validateHiveResults();
         try {
             Thread.sleep(10000L);
         } catch (InterruptedException e) {
